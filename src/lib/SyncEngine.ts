@@ -429,7 +429,7 @@ class SyncEngine {
 
     try {
       // ── Tables with reliable `created_at` ────────────────────────────────
-      const [materials, folders, tasks, _subtasks, messages] = await Promise.all([
+      const [materials, folders, tasks, , messages] = await Promise.all([
         supabase.from('study_materials')
           .select('*').eq('user_id', user.id).eq('is_personal', true)
           .gt('created_at', since),

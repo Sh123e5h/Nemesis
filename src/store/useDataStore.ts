@@ -281,9 +281,6 @@ export const useDataStore = create<DataState>()(
           if (memberErr) throw memberErr;
           const groupIds = memberData?.map(m => m.group_id) || [];
 
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
           let query = supabase
             .from('tasks')
             .select('id, title, due_date, status, group_id, subtasks(id, title, is_completed)')

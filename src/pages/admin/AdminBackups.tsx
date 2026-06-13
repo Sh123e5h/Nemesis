@@ -50,8 +50,6 @@ export default function AdminBackups() {
   const createBackup = useCallback(async (type: 'manual' | 'scheduled') => {
     setCreating(true);
     const adminId = sessionStorage.getItem('adminId');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
     // 1. Create a backup log entry
     let backupId: string | null = null;
     try {

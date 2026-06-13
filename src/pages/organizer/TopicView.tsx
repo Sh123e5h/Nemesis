@@ -316,7 +316,7 @@ export default function TopicView() {
       if (error) throw error;
       fetchData();
     } catch (err: any) {
-      showAlert({ title: 'Deletion Failed', message: 'Could not remove material from database. Please check your connection.', type: 'error' });
+      showAlert({ title: 'Deletion Failed', message: err.message || 'Could not remove material from database.', type: 'error' });
     }
   };
 

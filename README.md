@@ -37,7 +37,7 @@
 
 Built from the ground up by **Lead Architect Shireesh Kashyap**, a 19-year-old CSE student at Pranveer Singh Institute of Technology, Kanpur, this platform brings together years of Linux expertise, cybersecurity know-how, and a passion for building things that *actually matter*.
 
-> *"Nemesis is not just an app. It's a war machine for academics."*
+> *"Nemesis is like sex, it's better when it's free."*
 
 ---
 

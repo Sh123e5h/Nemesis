@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /organizer
+Allow: /groups
+Allow: /planner
+
+# Harden private and internal routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /search
+Disallow: /auth-interim
+Disallow: /suspended
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://nemesiss.in/sitemap.xml

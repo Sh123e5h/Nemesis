@@ -1,0 +1,65 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+apply from: "variables.gradle"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:9.1.1'
+        classpath 'com.google.gms:google-services:4.4.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    // Suppress warnings from 3rd party libraries and Capacitor plugins
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << "-Xlint:-deprecation" << "-Xlint:-unchecked"
+    }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            freeCompilerArgs += ["-Xsuppress-version-warnings", "-nowarn"]
+        }
+    }
+}
+
+// Force all submodules (Capacitor plugins) to use stable SDK versions and non-deprecated Proguard.
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            android {
+                compileSdk = 36
+                defaultConfig {
+                    if (minSdkVersion == null || (minSdkVersion instanceof Integer ? minSdkVersion < 26 : minSdkVersion.apiLevel < 26)) {
+                        minSdkVersion 26
+                    }
+                    if (targetSdkVersion == null || (targetSdkVersion instanceof Integer ? targetSdkVersion > 35 : targetSdkVersion.apiLevel > 35)) {
+                        targetSdkVersion 35
+                    }
+                }
+
+                // Global fix for plugins using deprecated 'proguard-android.txt'
+                // We use 'setProguardFiles' to ensure a total override of legacy plugin defaults.
+                buildTypes {
+                    release {
+                        setProguardFiles([getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'])
+                      }
+                }
+            }
+        }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

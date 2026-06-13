@@ -1,0 +1,166 @@
+/* ===========================
+   SCROLL PERFORMANCE OPTIMIZATION
+   =========================== */
+
+/* Scrolling containers — use contain for rendering isolation, no translateZ(0) to avoid GPU budget drain */
+.custom-scrollbar,
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling with hardware acceleration */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Message/item containers — containment for rendering isolation */
+.message-item,
+.notification-item {
+  contain: layout style;
+}
+
+/* Scroll container optimizations */
+.scroll-container {
+  contain: layout style paint;
+  /* Note: contain-intrinsic-size removed — causes Firefox to allocate huge virtual
+     layout areas and triggers slow paint on first scroll */
+}
+
+/* Scrollbar styling for better UX */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  scrollbar-width: thin;
+}
+
+/* Prevent scroll jank on list items */
+.message-list,
+.notification-list,
+.user-list {
+  contain: layout style paint;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Optimize text rendering during scroll */
+.scroll-container * {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* High performance scrolling using requestAnimationFrame */
+@media (prefers-reduced-motion: no-preference) {
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reduce paint areas during scroll for better performance */
+.scroll-container > * {
+  flex-shrink: 0;
+}
+
+/* Optimize backdrop blur for scrolling containers */
+.blur-bg {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Prevent layout shift during scroll */
+.scroll-container {
+  scrollbar-gutter: stable;
+}
+
+/* Firefox: disable smooth scrolling (Gecko is software-driven, causes jank)
+   and remove will-change budget overruns */
+@supports (-moz-appearance: none) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  .scroll-container,
+  .custom-scrollbar {
+    scroll-behavior: auto !important;
+    /* Gecko doesn't benefit from this hint */
+    -webkit-overflow-scrolling: auto !important;
+  }
+}
+
+/* Virtual scroll performance */
+.virtual-scroll-item {
+  contain: content;
+}
+
+/* Message bubble optimizations */
+.message-bubble,
+.notification-card {
+  contain: layout style paint;
+}
+
+/* Avatar image optimization */
+.avatar-img {
+  contain: layout style;
+}
+
+/* ============================================================
+   MOBILE PERFORMANCE HARDENING (Blazing Fast Mode)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Restore momentum scrolling on iOS/Safari (Crucial for "App-like" feel) */
+  .custom-scrollbar,
+  .scroll-container {
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* THE GLASS BUSTER: Reductive backdrop filtering for mobile GPUs */
+  /* backdrop-blur is the #1 cause of render lag on mobile web. */
+  [class*="backdrop-blur-"] {
+    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+
+  /* Disable heavy ambient animations that chew CPU cycles during scroll/interaction */
+  .animate-float,
+  .animate-shimmer {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  /* Simplify motion transforms to prevent layout shifts on touch */
+  .group:hover, 
+  .group-hover\:scale-110,
+  .group-hover\:-translate-y-2 {
+    transform: none !important;
+  }
+  
+  /* Optimize layer composition */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

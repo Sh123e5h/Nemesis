@@ -1,0 +1,176 @@
+/*
+# ✅ BING WEBMASTER GUIDELINES COMPLIANCE + GOOGLE SEO OPTIMIZATION
+# Ensures proper crawl efficiency, freshness signals, content availability, and Core Web Vitals support
+
+# Default headers for all routes
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  X-UA-Compatible: IE=edge
+
+# Sitemap — correct MIME type for Bing & Google Search Console (Guideline #3)
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+  # ETag support helps Bing & Google detect freshness more reliably
+  ETag: W/"sitemap-latest"
+
+# Google logo assets — must be accessible with correct MIME type
+/icon-192.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+/icon-512.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+
+# ✅ PUBLIC PAGES (Google Ranking + Core Web Vitals Optimization)
+# - Allow full indexing and caching
+# - NO NOARCHIVE / NOCACHE → Allows rich Copilot/Bard citations
+# - Proper cache headers signal freshness to crawlers
+# - Last-Modified for Google News feed efficiency
+
+/
+  Cache-Control: public, max-age=300, must-revalidate
+  X-Robots-Tag: index, follow, max-image-preview:large, max-snippet:-1
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+  ETag: W/"homepage-latest"
+  # Optimize for Largest Contentful Paint (LCP)
+  Link: </logo.svg>; rel=preload; as=image; type=image/svg+xml
+
+/welcome
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow, max-snippet:-1
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+/login
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow, max-snippet:-1
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+/signup
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow, max-snippet:-1
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+/forgot-password
+  Cache-Control: public, max-age=3600, must-revalidate
+  X-Robots-Tag: index, follow, max-snippet:-1
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+/terms
+  Cache-Control: public, max-age=604800, must-revalidate
+  X-Robots-Tag: index, follow
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+  ETag: W/"terms-latest"
+
+/privacy
+  Cache-Control: public, max-age=604800, must-revalidate
+  X-Robots-Tag: index, follow
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+  ETag: W/"privacy-latest"
+
+/dev-team
+  Cache-Control: public, max-age=86400, must-revalidate
+  X-Robots-Tag: index, follow, max-image-preview:large
+  Last-Modified: Wed, 09 Apr 2026 00:00:00 GMT
+
+
+# ✅ PRIVATE/PROTECTED ROUTES (Reduce Crawl Waste + Google Indexing Waste)
+# Explicitly noindex at HTTP layer to prevent unnecessary crawling
+# and preserve crawl budget for public, indexable content
+
+/home
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/planner
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/organizer
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/groups
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/settings
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/profile
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/search
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/notifications
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/messages
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/admin
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/suspended
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/reset-password
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+/signup/username
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: private, no-cache, no-store, must-revalidate
+
+# Static Assets (Google Core Web Vitals + Bing Guideline #8: Efficient Crawling)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.json
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/*.png
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/*.webp
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/favicon.ico
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/logo.svg
+  Cache-Control: public, max-age=31536000, immutable

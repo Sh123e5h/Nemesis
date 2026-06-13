@@ -1,0 +1,1415 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.theme-dark, .theme-dark *));
+@custom-variant cyberpunk (&:where(.theme-cyberpunk, .theme-cyberpunk *));
+.font-auth-modern {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+html {
+  overflow-y: auto;
+  scrollbar-color: rgba(14, 165, 233, 0.2) transparent;
+  scrollbar-width: thin;
+}
+
+html, body {
+  -webkit-overflow-scrolling: touch; /* Butter-smooth iOS momentum scroll */
+}
+
+
+#root {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 📱 Neural Alignment: Mobile Safety Hardening Utilities */
+.mobile-hardened {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden !important;
+}
+
+.mobile-narrow .text-sm { font-size: 0.8rem !important; }
+.mobile-narrow .text-base { font-size: 0.9rem !important; }
+.mobile-narrow h1 { font-size: 1.15rem !important; line-height: 1.2 !important; }
+.mobile-narrow .gap-4 { gap: 0.75rem !important; }
+.mobile-narrow .gap-2 { gap: 0.4rem !important; }
+.mobile-narrow .p-6 { padding: 1rem !important; }
+.mobile-narrow .px-4 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+
+.mobile-text-balance {
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+/* Custom Premium Scrollbar for Chromium Browsers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.15);
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 165, 233, 0.4);
+  background-clip: content-box;
+}
+
+:root {
+  --color-primary: var(--color-sky-500);
+  --color-bg: var(--color-sky-50);
+  --color-surface: var(--color-white);
+  --color-text: var(--color-slate-900);
+  --color-text-sec: var(--color-slate-500);
+  --skeleton-bg: var(--color-slate-200);
+  /* Floating Footer Variables */
+  --footer-bg: rgba(255, 255, 255, 0.45);
+  --footer-border: rgba(226, 232, 240, 0.5);
+  --footer-active-bg: rgba(14, 165, 233, 0.1);
+  --footer-active-text: var(--color-sky-600);
+  --footer-inactive-text: var(--color-slate-500);
+  /* Home Page Icon Variables */
+  --icon-bg-violet: var(--color-violet-50);
+  --icon-bg-emerald: var(--color-emerald-50);
+  --icon-bg-rose: var(--color-rose-50);
+  --icon-bg-orange: var(--color-orange-50);
+  --stats-icon-bg: var(--color-slate-100);
+  --nav-hover-bg: rgba(224, 242, 254, 0.5); /* sky-100/50 */
+  /* Pomodoro Variables (High Contrast Defaults) */
+  --pomodoro-bg: rgba(15, 23, 42, 0.85);
+  --pomodoro-text: #ffffff;
+  --pomodoro-text-sec: rgba(255, 255, 255, 0.7);
+  --pomodoro-mode-bg: rgba(255, 255, 255, 0.15);
+  --pomodoro-mode-btn-bg: #ffffff;
+  --pomodoro-mode-btn-text: #0284c7;
+}
+
+/* Ensure secondary text is visible on dark timer backgrounds by default */
+.pomodoro-secondary-text {
+  color: var(--pomodoro-text-sec);
+}
+.theme-dark .pomodoro-secondary-text,
+.theme-cyberpunk .pomodoro-secondary-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.icon-bg-violet { background-color: var(--icon-bg-violet) !important; }
+.icon-bg-emerald { background-color: var(--icon-bg-emerald) !important; }
+.icon-bg-rose { background-color: var(--icon-bg-rose) !important; }
+.icon-bg-orange { background-color: var(--icon-bg-orange) !important; }
+
+
+/* Base application styling */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  min-height: 100%;
+  touch-action: pan-y;
+
+}
+
+/* ⚡ INSTANT THEME SWITCH: Disable ALL transitions globally for 100ms during theme change.
+   This prevents 500+ elements from starting simultaneous animations (CPU killer). */
+.no-transitions,
+.no-transitions *,
+.is-scrolling *,
+.pause-animations * {
+  transition: none !important;
+  animation-duration: 0ms !important;
+  animation-play-state: paused !important;
+}
+
+/* ⚡ SCROLL PERFORMANCE GUARD: Reduce GPU load during active scrolling at 60fps */
+/* ⚡ SCROLL PERFORMANCE GUARD: Ensure base transitions are smooth without flickering */
+.theme-glassmorphism .bg-white,
+.glass-card,
+.glass-header {
+  transition: backdrop-filter 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.page-transition-wrapper {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+
+/* ========================================================= */
+/* 📱 NATIVE APP TOUCH & FEEDBACK OPTIMIZATIONS 📱          */
+/* ========================================================= */
+
+/* Delete the 300ms mobile touch delay universally and nuke default WebKit grey highlights */
+html, body, button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; 
+}
+
+/* Base snappy GPU-accelerated transition math for native element touches */
+button, 
+a, 
+.interactive-tap {
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.1s ease !important;
+  /* No translateZ(0) — let the browser decide compositor promotion; avoids budget drain */
+}
+
+/* The actual squash/shrink effect when holding your finger down (simulating Instagram/WhatsApp buttons) */
+button:active:not(:disabled), 
+a:active:not(.no-squish),
+.interactive-tap:active {
+  transform: scale(0.96) translateZ(0) !important;
+  opacity: 0.85 !important;
+}
+
+/* Utility: hide scrollbar but allow scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.app-wrapper {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ✨ PREMIUM DESIGN TOKENS & UTILITIES ✨ */
+.glass-premium {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.25) 100%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08) !important;
+}
+
+.theme-dark .glass-premium {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.45) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-cyberpunk .glass-premium {
+  background: linear-gradient(135deg, rgba(2, 6, 23, 0.85) 0%, rgba(10, 10, 10, 0.65) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.1) !important;
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05), 
+              0 2px 10px -5px rgba(0, 0, 0, 0.02),
+              0 0 0 1px rgba(255, 255, 255, 0.4) !important;
+}
+
+.shadow-glass {
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04),
+              0 1px 2px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.scroll-smooth-custom {
+  scroll-behavior: smooth;
+  scroll-padding-top: 2rem;
+}
+
+.shimmer-premium {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-premium::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer-anim 2.5s infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 60s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes shimmer-anim {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.glow-sky { filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.2)); }
+.glow-violet { filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.2)); }
+.glow-emerald { filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.2)); }
+.glow-rose { filter: drop-shadow(0 4px 12px rgba(244, 63, 94, 0.2)); }
+.glow-orange { filter: drop-shadow(0 4px 12px rgba(249, 115, 22, 0.2)); }
+
+/* Premium Underglow for Navigation */
+.nav-underglow {
+  position: relative;
+}
+.nav-underglow::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--color-sky-400);
+  filter: blur(8px);
+  opacity: 0.6;
+  border-radius: 50%;
+}
+
+/* Decorative layers: isolate stacking context without forcing a new compositor layer budget */
+.gpu-decor,
+.main-layout-ambient {
+  isolation: isolate;
+  contain: layout style;
+}
+
+/* Global Glass Navigation Wrapper */
+.glass-header {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  transform: translateZ(0);
+}
+
+/* Firefox Optimization: Gecko's backdrop-filter implementation is CPU-bound (not GPU-accelerated).
+   We completely disable backdrop-filter on Firefox for all cards/modals to achieve 60fps.
+   The glass-header keeps a minimal 4px blur (sticky element, only one per page).
+   Also: reset any stray will-change properties that framer-motion may have injected. */
+@supports (-moz-appearance: none) {
+  /* ─── Glassmorphism / backdrop-filter ─── */
+  .theme-glassmorphism .bg-white,
+  .glass-card,
+  .modal-overlay,
+  .auth-form input {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    transition: background-color 0.1s ease, border-color 0.1s ease !important;
+  }
+
+  /* Disable ALL Tailwind backdrop-blur-* classes on Firefox —
+     Gecko's backdrop-filter is software-rendered and tanks FPS */
+  [class*="backdrop-blur-"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Bottom navigation pill: replace blur with solid glass */
+  .glass-pile-active {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.97) !important;
+  }
+  .theme-dark .glass-pile-active {
+    background-color: rgba(10, 15, 30, 0.98) !important;
+  }
+  .theme-cyberpunk .glass-pile-active {
+    background-color: rgba(3, 3, 3, 0.99) !important;
+  }
+
+  .glass-header {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  /* Kill will-change budget completely on Firefox */
+  *,
+  *::before,
+  *::after {
+    will-change: auto !important;
+  }
+
+  /* Framer motion layoutId elements: contain instead of will-change
+     so Gecko doesn't promote thousands of layers unnecessarily */
+  [data-projection-id] {
+    will-change: auto !important;
+    contain: layout style;
+  }
+
+  /* Disable spring scale transitions on all framer elements —
+     opacity-only is the only GPU-composited property Gecko handles well */
+  [data-framer-component-type] {
+    transform: none !important;
+    transition: opacity 0.15s ease !important;
+  }
+}
+
+/* ── Firefox-safe page fade (replaces framer-motion spring on Gecko) ── */
+@keyframes firefox-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.firefox-fade-in {
+  animation: firefox-fade-in 0.15s ease-out both;
+}
+
+/* 🚀 MASSIVE MOBILE GPU PERFORMANCE LOCK 🚀
+   Completely rips out expensive dynamic background blurs and keyframe animations on mobile devices natively.
+   This guarantees 60fps scrolling on mid-range and low-end Android/iOS devices. */
+@media (max-width: 768px) {
+  /* ⚡ NATIVE HARDENING: Disable web-only artifacts */
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+  }
+
+  /* Prevent selection on navigation and UI elements for a native feel */
+  nav, button, .glass-header, .glass-card, img {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ⚡ OPTIMIZED MOBILE BLURS: No longer nuking entirely, but limiting to 60fps-safe levels */
+  /* Remove universal nuke to restore "premium" feel on modern mobile CPUs */
+  
+  .glass-card, .glass-header, .modal-overlay, .glass-pile-active {
+    backdrop-filter: blur(8px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(180%) !important;
+    transform: translateZ(0); /* Force GPU layer */
+  }
+  
+  /* Solid fallbacks for mobile surfaces */
+  .theme-glassmorphism .bg-white,
+  .glass-card,
+  .glass-header,
+  .modal-overlay {
+    background-color: rgba(255, 255, 255, 0.99) !important;
+    contain: layout paint; /* Hardware stabilization */
+  }
+  
+  /* Kill ALL looping GPU-intensive background animations */
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-blob-3,
+  .animate-shimmer,
+  .animate-float,
+  .main-layout-ambient,
+  .gpu-decor {
+    animation: none !important;
+    display: none !important;
+    transform: none !important;
+    will-change: auto !important;
+  }
+
+  /* Force solid fallbacks on mobile dark themes to prevent text-bleeding without blur */
+  .theme-dark .bg-white,
+  .theme-dark .glass-card,
+  .theme-dark .glass-header,
+  .theme-dark .modal-overlay {
+    background-color: rgba(15, 23, 42, 1) !important;
+  }
+
+  .theme-cyberpunk .glass-header,
+  .theme-cyberpunk .bg-white {
+    background-color: #030303 !important;
+    border: 1px solid #10b981 !important;
+  }
+
+  /* Optimize page transitions for mobile core */
+  .page-transition-wrapper {
+    padding-bottom: 0;
+  }
+
+  .glass-pile-active {
+    background-color: var(--footer-bg) !important;
+    background-color: color-mix(in srgb, var(--footer-bg) 75%, transparent) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.15) !important;
+    border-top: 1px solid var(--footer-border) !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+  }
+
+  .mobile-hardened {
+    /* Stabilized for mobile rendering without content-visibility flakes */
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Simplify shadows on mobile to reduce GPU paint cost */
+  @media (max-width: 768px) {
+    .glass-premium, .shadow-premium, .shadow-glass {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+      backdrop-filter: blur(8px) !important; /* Cap blur at 8px */
+    }
+    
+    /* Disable will-change on mobile to save memory */
+    * {
+      will-change: auto !important;
+    }
+    
+    /* Global motion reduction for high-performance feel */
+    .no-motion-mobile {
+      transition: none !important;
+      animation: none !important;
+    }
+
+    /* Elastic scroll behavior */
+    body, .overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Active "Press" states for buttons to mimic native apps */
+    button:active, .btn:active, .clickable:active {
+      opacity: 0.7;
+      transform: scale(0.97);
+      transition: all 0.1s ease;
+    }
+  }
+
+  /* GPU-Accelerated properties only for desktop */
+  @media (min-width: 1024px) {
+    .will-change-transform { will-change: transform; }
+    .will-change-opacity { will-change: opacity; }
+  }
+}
+
+/* GPU-Accelerated Card Base */
+.bg-white, .glass-card {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              border-color 0.2s ease,
+              background-color 0.2s ease !important;
+}
+
+@media (min-width: 769px) {
+  .bg-white, .glass-card {
+    will-change: transform, opacity; /* Hardware pre-optimization only on desktop to save mobile memory */
+  }
+}
+
+/* Optimized Lift Animation - Desktop Only */
+@media (min-width: 769px) {
+  .grid > a.bg-white:hover, 
+  .grid > div.bg-white:hover:not(.no-hover),
+  .bg-white.hover-lift:hover {
+    transform: translateY(-4px) translateZ(0) !important;
+    box-shadow: 0 20px 40px -15px rgba(14, 165, 233, 0.25), 
+                0 0 0 2px rgba(14, 165, 233, 0.4) !important;
+    border-color: rgba(14, 165, 233, 0.5) !important;
+    z-index: 10;
+  }
+}
+
+/* Disable expensive hover effects on touch devices */
+@media (max-width: 768px) {
+  .grid > a.bg-white:hover, 
+  .grid > div.bg-white:hover,
+  .bg-white.hover-lift:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Special Card Hover Rim Colors - Final Specificity Force-Reset */
+.grid div.bg-white.hover-border-violet-card:hover,
+.grid a.bg-white.hover-border-violet-card:hover { 
+  box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.4), 0 0 0 2px rgba(139, 92, 246, 0.8) !important;
+  border-color: #8b5cf6 !important;
+  z-index: 99 !important;
+}
+.grid div.bg-white.hover-border-emerald-card:hover,
+.grid a.bg-white.hover-border-emerald-card:hover { 
+  box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.4), 0 0 0 2px rgba(16, 185, 129, 0.8) !important;
+  border-color: #10b981 !important;
+  z-index: 99 !important;
+}
+.grid div.bg-white.hover-border-rose-card:hover,
+.grid a.bg-white.hover-border-rose-card:hover { 
+  box-shadow: 0 25px 50px -12px rgba(244, 63, 94, 0.4), 0 0 0 2px rgba(244, 63, 94, 0.8) !important;
+  border-color: #f43f5e !important;
+  z-index: 99 !important;
+}
+.grid div.bg-white.hover-border-sky-card:hover,
+.grid a.bg-white.hover-border-sky-card:hover { 
+  box-shadow: 0 25px 50px -12px rgba(14, 165, 233, 0.4), 0 0 0 2px rgba(14, 165, 233, 0.8) !important;
+  border-color: #0ea5e9 !important;
+  z-index: 99 !important;
+}
+.grid div.bg-white.hover-border-orange-card:hover,
+.grid a.bg-white.hover-border-orange-card:hover { 
+  box-shadow: 0 25px 50px -12px rgba(249, 115, 22, 0.4), 0 0 0 2px rgba(249, 115, 22, 0.8) !important;
+  border-color: #f97316 !important;
+  z-index: 99 !important;
+}
+
+/* Cyberpunk Specific Hover Glow Overrides */
+.theme-cyberpunk .grid > a.bg-white:hover,
+.theme-cyberpunk .grid > div.bg-white:hover {
+  box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.3), 
+              0 0 0 2px rgba(16, 185, 129, 0.6) !important; /* Neon green rim */
+  border-color: #10b981 !important;
+}
+
+/* Premium Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  z-index: 9999 !important;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Glassmorphism Theme Overrides - Optimized */
+.theme-glassmorphism .bg-white {
+  background: rgba(255, 255, 255, 0.48) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  transform: translateZ(0);
+  contain: layout style;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08) !important;
+  --skeleton-bg: rgba(255, 255, 255, 0.1) !important;
+  --footer-bg: rgba(255, 255, 255, 0.45);
+  --footer-border: rgba(255, 255, 255, 0.5);
+  --footer-active-bg: rgba(14, 165, 233, 0.2);
+  --footer-active-text: var(--color-sky-500);
+  --footer-inactive-text: rgba(15, 23, 42, 0.75);
+  --icon-bg-violet: rgba(139, 92, 246, 0.1);
+  --icon-bg-emerald: rgba(16, 185, 129, 0.1);
+  --icon-bg-rose: rgba(244, 63, 94, 0.1);
+  --icon-bg-orange: rgba(249, 115, 22, 0.1);
+  --stats-icon-bg: rgba(255, 255, 255, 0.1);
+  --nav-hover-bg: rgba(14, 165, 233, 0.1);
+  /* Pomodoro Glassmorphism */
+  --pomodoro-bg: rgba(15, 23, 42, 0.4);
+  --pomodoro-text: #fff;
+  --pomodoro-text-sec: rgba(186, 230, 253, 0.8);
+  --pomodoro-mode-bg: rgba(255, 255, 255, 0.25);
+  --pomodoro-mode-btn-bg: #ffffff;
+  --pomodoro-mode-btn-text: #0284c7;
+}
+
+.theme-glassmorphism .modal-overlay {
+  background-color: rgba(15, 23, 42, 0.15) !important;
+  backdrop-filter: blur(8px) !important;
+  transform: translateZ(0);
+}
+
+.theme-glassmorphism .bg-slate-50, 
+.theme-glassmorphism .bg-slate-100, 
+.theme-glassmorphism .bg-slate-200 { 
+  background: transparent !important; 
+}
+
+/* Specific component overrides for Glassmorphism */
+.theme-glassmorphism .progress-track {
+  background: rgba(224, 242, 254, 0.4) !important;
+  border: 1px solid rgba(14, 165, 233, 0.25) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-glassmorphism .bg-sky-50 { 
+  background: rgba(14, 165, 233, 0.1) !important; 
+  color: var(--color-sky-500) !important;
+}
+
+.theme-glassmorphism .bg-red-50 { 
+  background: rgba(239, 68, 68, 0.1) !important; 
+  color: rgba(185, 28, 28, 1) !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.theme-glassmorphism .auth-form input, 
+.theme-glassmorphism .auth-form textarea, 
+.theme-glassmorphism .auth-form select {
+  background: rgba(241, 245, 249, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  color: var(--color-slate-900) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-glassmorphism .auth-form input:focus, 
+.theme-glassmorphism .auth-form textarea:focus, 
+.theme-glassmorphism .auth-form select:focus {
+  background: #ffffff !important;
+  border-color: #0ea5e9 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15) !important;
+}
+
+.theme-glassmorphism .border-slate-100,
+.theme-glassmorphism .border-slate-200,
+.theme-glassmorphism .border-slate-300 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Signup / legal row: fake checkbox uses .bg-white + slate borders; glass theme flattens them and
+   hover:bg-white on the row made the box vanish. Force a solid control surface. */
+.legal-checkbox-visual:not(.legal-checkbox-visual--checked) {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.legal-checkbox-visual--checked {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+}
+.theme-glassmorphism .legal-checkbox-visual:not(.legal-checkbox-visual--checked) {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 2px solid rgba(100, 116, 139, 0.55) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+}
+.theme-glassmorphism .legal-checkbox-visual--checked {
+  background: #0ea5e9 !important;
+  border: 2px solid #0ea5e9 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.theme-cyberpunk .legal-checkbox-visual:not(.legal-checkbox-visual--checked) {
+  background: #050505 !important;
+  border-color: #34d399 !important;
+}
+.theme-cyberpunk .legal-checkbox-visual--checked {
+  background: #10b981 !important;
+  border-color: #059669 !important;
+}
+
+/* Minimalist Theme Overrides - Clean, Light, Fast */
+.theme-minimalist body { background-color: #f8fafc !important; color: #1e293b !important; }
+.theme-minimalist .bg-white { 
+  background-color: #ffffff !important; 
+  border: 1px solid #e2e8f0 !important; 
+  backdrop-filter: none !important; 
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important; 
+  color: #1e293b !important; 
+}
+.theme-minimalist .glass-header { 
+  background-color: #ffffff !important; 
+  border-bottom: 1px solid #e2e8f0 !important; 
+  backdrop-filter: none !important; 
+  -webkit-backdrop-filter: none !important;
+}
+.theme-minimalist .bg-sky-50 { background-color: #f0f9ff !important; color: #0369a1 !important; border: 1px solid #e0f2fe !important; }
+.theme-minimalist .bg-slate-50, .theme-minimalist .bg-slate-100 { background-color: #f8fafc !important; }
+.theme-minimalist .text-slate-900 { color: #0f172a !important; }
+.theme-minimalist .text-slate-500 { color: #64748b !important; }
+.theme-minimalist input:focus, .theme-minimalist textarea:focus { outline: none !important; border-color: #e2e8f0 !important; }
+
+/* Cyberpunk Theme Overrides - High Contrast & Neon */
+.theme-cyberpunk {
+  --color-bg: #030303;
+  --color-text: #10b981;
+  --skeleton-bg: #064e3b !important;
+  background-color: #030303 !important;
+  color: #10b981 !important;
+  --footer-bg: rgba(3, 3, 3, 0.98);
+  --footer-border: #10b981;
+  --footer-active-bg: rgba(16, 185, 129, 1);
+  --footer-active-text: #030303;
+  --footer-inactive-text: #059669;
+  --icon-bg-violet: rgba(139, 92, 246, 0.2);
+  --icon-bg-emerald: rgba(16, 185, 129, 0.2);
+  --icon-bg-rose: rgba(244, 63, 94, 0.2);
+  --icon-bg-orange: rgba(249, 115, 22, 0.2);
+  --stats-icon-bg: rgba(16, 185, 129, 0.1);
+  --nav-hover-bg: rgba(16, 185, 129, 0.2);
+  /* Pomodoro Cyberpunk */
+  --pomodoro-bg: rgba(3, 3, 3, 0.8);
+  --pomodoro-text: #10b981;
+  --pomodoro-text-sec: rgba(16, 185, 129, 0.7);
+  --pomodoro-mode-bg: rgba(255, 255, 255, 0.25);
+  --pomodoro-mode-btn-bg: #ffffff;
+  --pomodoro-mode-btn-text: #10b981;
+}
+
+/* Hard Surface Reset for Cyberpunk */
+.theme-cyberpunk .bg-white,
+.theme-cyberpunk .bg-white\/5,
+.theme-cyberpunk .bg-white\/10,
+.theme-cyberpunk .bg-white\/20,
+.theme-cyberpunk .bg-white\/30,
+.theme-cyberpunk .bg-white\/40,
+.theme-cyberpunk .bg-white\/50,
+.theme-cyberpunk .bg-white\/60,
+.theme-cyberpunk .bg-white\/70,
+.theme-cyberpunk .bg-white\/80,
+.theme-cyberpunk .bg-white\/90,
+.theme-cyberpunk .glass-card,
+.theme-cyberpunk .bg-slate-50,
+.theme-cyberpunk .bg-slate-100,
+.theme-cyberpunk .bg-slate-200,
+.theme-cyberpunk .bg-amber-50,
+.theme-cyberpunk .bg-orange-50,
+.theme-cyberpunk .from-amber-50,
+.theme-cyberpunk .to-orange-50,
+.theme-cyberpunk .from-orange-50,
+.theme-cyberpunk .to-amber-50 {
+  background: #0a0a0a !important;
+  background-image: none !important;
+  border-color: #064e3b !important;
+  color: #10b981 !important;
+}
+
+/* Cyberpunk Selection, Header & Nav */
+.theme-cyberpunk .bg-sky-50,
+.theme-cyberpunk .bg-sky-100 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.theme-cyberpunk .text-sky-500,
+.theme-cyberpunk .text-sky-600,
+.theme-cyberpunk .hover\:text-sky-500:hover,
+.theme-cyberpunk .hover\:text-sky-600:hover { 
+  color: #10b981 !important; 
+}
+
+/* Force legibility inside themed containers */
+.theme-cyberpunk .bg-sky-50 span,
+.theme-cyberpunk .bg-sky-50 p,
+.theme-cyberpunk .bg-sky-50 div,
+.theme-cyberpunk .bg-sky-50 svg,
+.theme-cyberpunk .bg-sky-100 svg {
+  color: #10b981 !important;
+}
+
+.theme-cyberpunk .glass-header { 
+  background-color: rgba(3, 3, 3, 0.95) !important; 
+  border-bottom: 2px solid #10b981 !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.theme-cyberpunk .text-slate-900, 
+.theme-cyberpunk .text-slate-800,
+.theme-cyberpunk .text-slate-700 { color: #10b981 !important; }
+.theme-cyberpunk .text-slate-600,
+.theme-cyberpunk .text-slate-500, 
+.theme-cyberpunk .text-slate-400 { color: #059669 !important; }
+
+/* Header Brand & Active State Overrides for Cyberpunk */
+.theme-cyberpunk .text-sky-500,
+.theme-cyberpunk .text-sky-600 { color: #10b981 !important; }
+.theme-cyberpunk .hover\:text-sky-500:hover,
+.theme-cyberpunk .hover\:text-sky-400:hover { color: #34d399 !important; }
+
+/* Organizer — subject row icon well only (cyberpunk): avoid solid green tile + invisible stroke */
+.theme-cyberpunk .organizer-subject-icon-well.bg-sky-50,
+.theme-cyberpunk .organizer-subject-icon-well.bg-sky-100 {
+  background-color: rgba(5, 5, 5, 0.92) !important;
+  border: 1px solid color-mix(in srgb, #34d399 50%, transparent) !important;
+  color: #6ee7b7 !important;
+  box-shadow: 0 0 12px color-mix(in srgb, #10b981 28%, transparent);
+}
+.theme-cyberpunk .group:hover .organizer-subject-icon-well.bg-sky-50,
+.theme-cyberpunk .group:hover .organizer-subject-icon-well.bg-sky-100 {
+  background-color: rgba(5, 5, 5, 0.96) !important;
+  border-color: color-mix(in srgb, #6ee7b7 55%, transparent) !important;
+  color: #a7f3d0 !important;
+  box-shadow: 0 0 16px color-mix(in srgb, #34d399 35%, transparent);
+}
+.theme-cyberpunk .organizer-subject-icon-well svg {
+  fill: none !important;
+  stroke: currentColor !important;
+  color: inherit !important;
+}
+
+/* Active Nav Pill in Cyberpunk Header */
+.theme-cyberpunk .glass-header .bg-\[var\(--nav-hover-bg\)\] {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  border-color: #10b981 !important;
+}
+.theme-cyberpunk input:focus, .theme-cyberpunk textarea:focus { outline: none !important; border-color: #064e3b !important; box-shadow: none !important; }
+
+/* Achievement Icons & Boxed text Specific for Cyberpunk */
+.theme-cyberpunk .bg-gradient-to-br {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+  border: 1px solid #064e3b !important;
+}
+
+.theme-cyberpunk .bg-gradient-to-br:not(.bg-clip-text) {
+  background: #0a0a0a !important;
+  background-image: none !important;
+}
+
+/* Dark Theme Overrides - Deep & Polished */
+.theme-dark {
+  --color-bg: #0a0f1e;
+  --color-text: #f8fafc;
+  --skeleton-bg: #1e293b !important;
+  background-color: #0a0f1e !important;
+  color: #f8fafc !important;
+  --footer-bg: rgba(10, 15, 30, 0.98);
+  --footer-border: rgba(51, 65, 85, 0.8);
+  --footer-active-bg: rgba(56, 189, 248, 0.2);
+  --footer-active-text: #38bdf8;
+  --footer-inactive-text: #94a3b8;
+  --icon-bg-violet: rgba(139, 92, 246, 0.15);
+  --icon-bg-emerald: rgba(16, 185, 129, 0.15);
+  --icon-bg-rose: rgba(244, 63, 94, 0.15);
+  --icon-bg-orange: rgba(249, 115, 22, 0.15);
+  --nav-hover-bg: rgba(56, 189, 248, 0.1);
+  /* Pomodoro Dark */
+  --pomodoro-bg: rgba(15, 23, 42, 0.8);
+  --pomodoro-text: #fff;
+  --pomodoro-text-sec: rgba(148, 163, 184, 0.8);
+  --pomodoro-mode-bg: rgba(255, 255, 255, 0.25);
+  --pomodoro-mode-btn-bg: #ffffff;
+  --pomodoro-mode-btn-text: #0ea5e9;
+}
+
+.theme-dark .bg-white,
+.theme-dark .bg-white\/5,
+.theme-dark .bg-white\/10,
+.theme-dark .bg-white\/20,
+.theme-dark .bg-white\/30,
+.theme-dark .bg-white\/40,
+.theme-dark .bg-white\/50,
+.theme-dark .bg-white\/60,
+.theme-dark .bg-white\/70,
+.theme-dark .bg-white\/80,
+.theme-dark .bg-white\/90,
+.theme-dark .glass-card,
+.theme-dark .bg-slate-50,
+.theme-dark .bg-slate-100,
+.theme-dark .bg-amber-50,
+.theme-dark .bg-orange-50,
+.theme-dark .from-amber-50,
+.theme-dark .to-orange-50 {
+  background-color: #1e293b !important;
+  background-image: none !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.theme-dark .bg-sky-50,
+.theme-dark .bg-sky-100 {
+  background-color: #334155 !important;
+  border-color: #38bdf8 !important;
+  color: #fff !important;
+}
+
+.theme-dark .glass-header { 
+  background-color: rgba(10, 15, 30, 0.95) !important; 
+  border-bottom: 1px solid #1e293b !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.theme-dark .text-slate-900, 
+.theme-dark .text-slate-800,
+.theme-dark .text-slate-700 { color: #f8fafc !important; }
+.theme-dark .text-slate-500, 
+.theme-dark .text-slate-400 { color: #94a3b8 !important; }
+.theme-dark input:focus, .theme-dark textarea:focus { outline: none !important; border-color: #334155 !important; box-shadow: none !important; }
+
+/* Home dashboard — stat & nav icon wells (cyberpunk / dark only; light themes keep Tailwind bg-*-50) */
+.theme-cyberpunk .dashboard-icon-well {
+  background: rgba(5, 5, 5, 0.92) !important;
+  border: 1px solid color-mix(in srgb, currentColor 55%, transparent) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, currentColor 30%, transparent);
+}
+.theme-cyberpunk .dashboard-icon-well svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* Home stats — trophy circle + glyph (cyberpunk) */
+.theme-cyberpunk .dashboard-trophy-icon.dashboard-icon-well {
+  border-color: color-mix(in srgb, #facc15 55%, transparent) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, #facc15 32%, transparent);
+}
+.theme-cyberpunk .dashboard-trophy-icon svg {
+  color: #facc15 !important;
+  stroke: #facc15 !important;
+}
+
+.theme-dark .dashboard-icon-well {
+  background: rgba(30, 41, 59, 0.7) !important;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, currentColor 22%, transparent);
+}
+.theme-dark .dashboard-icon-well svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+/* Theme Transition Utility - Optimized for 60fps */
+html, body, .app-wrapper {
+  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s ease !important;
+}
+
+/* Specific component transitions - Avoid global wildcard transitions for background-color */
+.bg-white, .glass-header, .bg-slate-50, .bg-sky-50 {
+  transition: background-color 0.2s ease, 
+              border-color 0.2s ease,
+              color 0.2s ease !important;
+}
+
+/* Hardware Smoothness */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Low-CPU / Battery Saver Mode Class (theme + low-perf often share <html>) */
+html.low-perf.theme-glassmorphism .bg-white,
+html.low-perf .theme-glassmorphism .bg-white,
+.low-perf .theme-glassmorphism .bg-white,
+html.low-perf .glass-header,
+.low-perf .glass-header,
+html.low-perf .theme-cyberpunk .glass-header,
+.low-perf .theme-cyberpunk .glass-header,
+html.low-perf .theme-dark .glass-header,
+.low-perf .theme-dark .glass-header {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: #ffffff !important;
+}
+
+.low-perf .animate-blob-1,
+.low-perf .animate-blob-2,
+.low-perf .animate-blob-3,
+.low-perf .animate-shimmer {
+  animation: none !important;
+}
+
+/* LIVE BLOOM BACKGROUND ANIMATIONS - GPU Compositor-Safe (60fps)
+   ⚡ CRITICAL FIX: filter:blur() is NOT GPU-composited when combined with animation.
+   Solution: set filter:blur() as a STATIC property on the element (via inline style),
+   and animate ONLY transform + opacity — the two GPU compositor-promoted properties.
+   This eliminates all 10 'non-composited animation' Lighthouse warnings. */
+@keyframes float-blob-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  25% { transform: translate3d(8%, -12%, 0) scale(1.12); opacity: 1; }
+  50% { transform: translate3d(-4%, 8%, 0) scale(0.95); opacity: 0.75; }
+  75% { transform: translate3d(12%, 4%, 0) scale(1.05); opacity: 0.9; }
+}
+
+@keyframes float-blob-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.08); opacity: 0.8; }
+  33% { transform: translate3d(-10%, 9%, 0) scale(0.9); opacity: 0.65; }
+  66% { transform: translate3d(8%, -5%, 0) scale(1.2); opacity: 0.95; }
+}
+
+@keyframes float-blob-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95); opacity: 0.7; }
+  50% { transform: translate3d(12%, -12%, 0) scale(1.1); opacity: 0.9; }
+}
+
+/* Static blur applied via style prop in LiveBackground.tsx — NOT animated */
+.animate-blob-1 { animation: float-blob-1 30s infinite ease-in-out; }
+.animate-blob-2 { animation: float-blob-2 35s infinite ease-in-out; }
+.animate-blob-3 { animation: float-blob-3 25s infinite linear; }
+
+/* Shimmer Animation for Premium Buttons & Progress Bars */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+
+/* Floating Animation for Eyecandy */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+/* Heartbeat: CSS-only replacement for the framer-motion infinite spring on the ❤️ footer emoji */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.3); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.2); }
+  56% { transform: scale(1); }
+}
+.animate-heartbeat {
+  animation: heartbeat 1.8s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* Mobile dashboard overflow lock — class-based so resize events clean up correctly */
+html.home-mobile-lock {
+  overflow: hidden;
+}
+html.home-mobile-lock body {
+  overflow: hidden;
+}
+
+/* Edit Profile Button Theme Fixes */
+.theme-cyberpunk .edit-profile-btn {
+  background: #050505 !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+.theme-cyberpunk .edit-profile-btn:hover {
+  background: rgba(16, 185, 129, 0.1) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2) !important;
+}
+
+.theme-cyberpunk .edit-profile-btn svg {
+  color: #10b981 !important;
+}
+
+.theme-dark .edit-profile-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.theme-dark .edit-profile-btn:hover {
+  background: #334155 !important;
+  border-color: #38bdf8 !important;
+}
+
+.theme-dark .edit-profile-btn svg {
+  color: #94a3b8 !important;
+}
+
+.theme-dark .edit-profile-btn:hover svg {
+  color: #38bdf8 !important;
+}
+
+/* Dev Avatar Frame Theme Fixes */
+.theme-cyberpunk .dev-avatar-frame {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4) !important;
+  border-color: #064e3b !important;
+}
+
+.theme-cyberpunk .dev-card:hover .dev-avatar-frame {
+  box-shadow: 0 0 50px rgba(16, 185, 129, 0.6) !important;
+  border-color: #10b981 !important;
+}
+
+.theme-dark .dev-avatar-frame {
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.2) !important;
+  border-color: #334155 !important;
+}
+
+.theme-dark .dev-card:hover .dev-avatar-frame {
+  box-shadow: 0 0 50px rgba(56, 189, 248, 0.4) !important;
+  border-color: #38bdf8 !important;
+}
+
+.theme-minimalist .dev-avatar-frame {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+  border-color: #f1f5f9 !important;
+}
+
+/* Support Modal Theme Refinements */
+.theme-cyberpunk .support-modal {
+  background: rgba(3, 3, 3, 0.9) !important;
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 0 60px rgba(16, 185, 129, 0.2) !important;
+}
+
+.theme-dark .support-modal {
+  background: rgba(10, 15, 30, 0.8) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7) !important;
+}
+
+.theme-cyberpunk .support-modal button.bg-white\/40, 
+.theme-dark .support-modal button.bg-white\/40 {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.theme-cyberpunk .support-modal .bg-white\/20,
+.theme-dark .support-modal .bg-white\/20 {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-cyberpunk .support-modal .text-slate-900,
+.theme-dark .support-modal .text-slate-900 {
+  color: #fff !important;
+}
+
+.theme-cyberpunk .support-modal label,
+.theme-dark .support-modal label {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Close button specific */
+.theme-cyberpunk .support-modal button.bg-white\/30,
+.theme-dark .support-modal button.bg-white\/30 {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+/* Dev Team Page Theme Refinements */
+.theme-cyberpunk .dev-team-page,
+.theme-dark .dev-team-page {
+  background: var(--color-bg) !important;
+}
+
+.theme-cyberpunk .dev-card {
+  background: #0a0a0a !important;
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1) !important;
+}
+
+.theme-cyberpunk .dev-card:hover {
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.25) !important;
+  border-color: #34d399 !important;
+}
+
+.theme-dark .dev-card {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-dark .dev-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 20px 50px -10px rgba(14, 165, 233, 0.2) !important;
+}
+
+.theme-cyberpunk .mission-section {
+  background: #000 !important;
+  border: 4px solid #10b981 !important;
+  box-shadow: 0 0 50px rgba(16, 185, 129, 0.2) !important;
+}
+
+.theme-dark .mission-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  border: 1px solid #38bdf8 !important;
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.6) !important;
+}
+
+.theme-cyberpunk .dev-card .bg-rose-50,
+.theme-dark .dev-card .bg-rose-50 {
+  background: rgba(244, 63, 94, 0.1) !important;
+  border: 1px solid rgba(244, 63, 94, 0.3) !important;
+}
+
+/* Meet the Creators Card Theme Refinements */
+.creators-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-cyberpunk .creators-card {
+  background: rgba(6, 78, 59, 0.2) !important;
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15) !important;
+}
+
+.theme-cyberpunk .creators-card:hover {
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.3) !important;
+  transform: scale(1.02) !important;
+}
+
+.theme-dark .creators-card {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+}
+
+.theme-dark .creators-card:hover {
+  background: #334155 !important;
+  box-shadow: 0 30px 60px -15px rgba(14, 165, 233, 0.2) !important;
+}
+
+.theme-minimalist .creators-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-minimalist .creators-card h2,
+.theme-minimalist .creators-card p {
+  color: #1e293b !important;
+}
+
+.theme-minimalist .creators-card .bg-white\/10 {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.theme-minimalist .creators-card .text-white {
+  color: #64748b !important;
+}
+
+/* ============================================================ */
+/* ⚙️ SETTINGS PAGE — Theme Overrides                          */
+/* (Previously inline styles — moved here for proper caching)  */
+/* ============================================================ */
+
+/* ─── Cyberpunk Theme ─── */
+html.theme-cyberpunk .settings-card {
+  background: #000000 !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2) !important;
+}
+
+html.theme-cyberpunk .settings-card h1,
+html.theme-cyberpunk .settings-card h2,
+html.theme-cyberpunk .settings-card h3 {
+  color: #10b981 !important;
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.6) !important;
+}
+
+html.theme-cyberpunk .settings-card .text-slate-900,
+html.theme-cyberpunk .settings-card .text-slate-800,
+html.theme-cyberpunk .settings-card .text-slate-700,
+html.theme-cyberpunk .settings-card .text-slate-600 {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+html.theme-cyberpunk .settings-card .text-slate-500,
+html.theme-cyberpunk .settings-card .text-slate-400 {
+  color: #10b981 !important;
+  opacity: 0.85 !important;
+}
+
+html.theme-cyberpunk .settings-card .bg-sky-50,
+html.theme-cyberpunk .settings-card .bg-emerald-50,
+html.theme-cyberpunk .settings-card .bg-sky-100 {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+html.theme-cyberpunk .settings-card .text-sky-600,
+html.theme-cyberpunk .settings-card .text-emerald-500,
+html.theme-cyberpunk .settings-card .text-sky-500 {
+  color: #000000 !important;
+}
+
+html.theme-cyberpunk .settings-card .bg-slate-100 {
+  background-color: #111111 !important;
+  border-color: #10b981 !important;
+}
+
+html.theme-cyberpunk .settings-card .border-slate-100 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.theme-cyberpunk .settings-card button {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+  background: #000 !important;
+}
+
+html.theme-cyberpunk .settings-card button:hover {
+  background: rgba(16, 185, 129, 0.1) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+html.theme-cyberpunk .settings-card .bg-slate-50 {
+  background: #000 !important;
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}
+
+/* ─── Dark Theme ─── */
+.theme-dark .settings-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+.theme-dark .settings-card .bg-sky-50 {
+  background: #0f172a !important;
+  color: #38bdf8 !important;
+  border-color: #1e293b !important;
+}
+
+.theme-dark .settings-card .bg-slate-100 {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+.theme-dark .settings-card .border-slate-100 {
+  border-color: #334155 !important;
+}
+
+.theme-dark .settings-card .text-slate-600,
+.theme-dark .settings-card .text-slate-800 {
+  color: #cbd5e1 !important;
+}
+
+.theme-dark .settings-card .bg-emerald-50 {
+  background: #064e3b !important;
+  color: #4ade80 !important;
+  border-color: #166534 !important;
+}
+

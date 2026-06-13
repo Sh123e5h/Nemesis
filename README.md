@@ -20,32 +20,12 @@
   </p>
 
   <p>
-    <a href="https://nemesis-xi.vercel.app"><strong>🚀 Live Demo</strong></a>
+    <a href="https://nemesiss.in"><strong>🚀 Live Demo</strong></a>
     ·
     <a href="./Nemesis_Official_Documentation.pdf"><strong>📖 Full Documentation</strong></a>
     ·
     <a href="https://github.com/Sh123e5h/Nemesis/issues"><strong>🐛 Report Bug</strong></a>
   </p>
-
-</div>
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-### Dashboard
-<img src="public/showcase/dashboard.png" alt="Nemesis Dashboard" width="100%" />
-
-### Study Organizer
-<img src="public/showcase/organizer.png" alt="Nemesis Organizer" width="100%" />
-
-### Group Collaboration
-<img src="public/showcase/group.png" alt="Nemesis Groups" width="100%" />
-
-### Planner
-<img src="public/showcase/planner.png" alt="Nemesis Planner" width="100%" />
 
 </div>
 
@@ -66,8 +46,16 @@ Built from the ground up by **Lead Architect Shireesh Kashyap**, a 19-year-old C
 ### 📊 01. Dashboard
 Your mission control. Monitor upcoming tasks, recent activity, group updates, and your gamification progress — all from a single, beautiful hub.
 
+<div align="center">
+<img src="public/showcase/dashboard.png" alt="Nemesis Dashboard" width="100%" />
+</div>
+
 ### 🗂️ 02. Study Organizer
 Organize subjects and topics with folders, tags, and smart search. Upload files, save links, generate AI quizzes, and share materials with groups — all in one place.
+
+<div align="center">
+<img src="public/showcase/organizer.png" alt="Nemesis Dashboard" width="100%" />
+</div>
 
 ### 👥 03. Groups
 Real-time collaboration spaces with:
@@ -76,8 +64,16 @@ Real-time collaboration spaces with:
 - **File Library** for centralized material sharing
 - **Collaborative Whiteboard** for brainstorming sessions
 
+<div align="center">
+<img src="public/showcase/group.png" alt="Nemesis Dashboard" width="100%" />
+</div>
+
 ### 📅 04. Planner
 A fully-featured task management system with subtasks, due dates, group assignments, and Pomodoro timer integration. Never miss a deadline again.
+
+<div align="center">
+<img src="public/showcase/planner.png" alt="Nemesis Dashboard" width="100%" />
+</div>
 
 ### 🏆 05. Gamification
 A complete points and badges system that rewards consistent study habits, uploads, and collaboration. Climb the leaderboard and track your streak.
@@ -183,12 +179,12 @@ npm run lint     # Run ESLint
 ## 👨‍💻 The Architect
 
 <div align="center">
-  <img src="public/shireesh.webp" alt="Shireesh Kashyap" width="100" style="border-radius: 50%;" />
+  <img src="public/shireesh.webp" alt="Shireesh Kashyap" width="400" style="border-radius: 50%;" />
 
   **Shireesh Kashyap**
   *Lead Architect & Founder*
 
-  CSE Student, Pranveer Singh Institute of Technology, Kanpur
+  Computer Science Engineer
 
   *"From hacking school systems out of curiosity to building production-grade platforms out of purpose."*
 </div>

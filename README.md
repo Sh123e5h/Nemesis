@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/landing-assets/logo.webp" alt="Nemesis Logo" width="120" />
+  <img src="public/favicon-512.png" alt="Nemesis Logo" width="200" />
 
   <h1>NEMESIS</h1>
   <p><strong>Intelligence Protocol Activated</strong></p>

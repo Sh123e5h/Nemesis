@@ -35,7 +35,7 @@
 
 **Nemesis** was born from a simple belief: students deserve tools that match their ambition. Named after the Greek goddess of retribution — the force that restores balance — Nemesis is the academic equalizer that arms every student with enterprise-grade productivity.
 
-Built from the ground up by **Lead Architect Shireesh Kashyap**, a 19-year-old CSE student at Pranveer Singh Institute of Technology, Kanpur, this platform brings together years of Linux expertise, cybersecurity know-how, and a passion for building things that *actually matter*.
+Built from the ground up by **Lead Architect Shireesh Kashyap**, a 19-year-old Computer Science Student, this platform brings together years of Linux expertise, cybersecurity know-how, and a passion for building things that *actually matter*.
 
 > *"Nemesis is like sex, it's better when it's free."*
 

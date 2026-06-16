@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.nemesis.android" version="1.0.0" android-versionCode="1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Nemesis</name>
+    <description>
+        Nemesis is a high-performance academic coordination hub for modern students.
+    </description>
+    <author email="support@nemesiss.in" href="https://nemesiss.in">
+        Genesis Development Team
+    </author>
+    <platform name="android">
+        <icon src="res/icon.png" />
+    </platform>
+    <content src="index.html" />
+    <allow-navigation href="https://accounts.google.com/*" />
+    <allow-navigation href="https://ssl.gstatic.com/*" />
+    <allow-navigation href="https://*.supabase.co/*" />
+    <allow-navigation href="https://localhost/*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="upi:*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <preference name="loglevel" value="DEBUG" />
+    <preference name="AndroidEdgeToEdge" value="true" />
+    <preference name="scheme" value="https" />
+    <preference name="hostname" value="localhost" />
+    <preference name="StatusBarOverlaysWebView" value="true" />
+    <preference name="StatusBarStyle" value="default" />
+    <preference name="StatusBarBackgroundColor" value="#00000000" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="ScrollWheelSpeed" value="1.5" />
+    <preference name="BackgroundColor" value="#FFFFFFFF" />
+    <preference name="OverrideUserAgent" value="Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.164 Mobile Safari/537.36" />
+    <preference name="KeepRunning" value="false" />
+</widget>

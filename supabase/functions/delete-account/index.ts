@@ -37,11 +37,9 @@ serve(async (req) => {
       await supabase.from("quiz_questions").delete().in("quiz_id", slice);
     }
     await supabase.from("quizzes").delete().eq("created_by", userId);
-
-    // Profile updates/deletion (RLS policies usually allow cascade, but doing manually for clean separation)
-    await supabase.from("profiles").delete().eq("id", userId);
     await supabase.from("study_materials").delete().eq("user_id", userId);
-    await supabase.from("tasks").delete().eq("user_id", userId);
+    await supabase.from("tasks").delete().eq("created_by", userId);
+    await supabase.from("profiles").delete().eq("id", userId);
 
     // 3. Send Deletion Confirmation Email
     try {

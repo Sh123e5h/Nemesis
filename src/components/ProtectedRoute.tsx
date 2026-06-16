@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { profileNeedsSignupCompletion } from '../lib/authRedirect';
 import { supabase } from '../lib/supabase';
 import { SectionFallback } from './SectionFallback';
 import { ShieldCheck } from 'lucide-react';
@@ -62,8 +63,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireUsername 
   // redirects to the onboarding flow for users who already have profiles.
   // CRITICAL: We allow /signup/username to bypass the isFetchingProfile check because 
   // that component is the one responsible for creating/refreshing the profile.
+  //
+  // ⚡ PERF: If we are initialized from localStorage cache (returning user), we already
+  // have a session+profile in state — don't block on isFetchingProfile (background refresh).
+  // Only block if we have NO profile at all yet (first load, no cache).
   const isSetupRoute = location.pathname === '/signup/username';
-  if (!initialized || mfaStatus.loading || (isFetchingProfile && !isSetupRoute)) {
+  const hasProfileInState = !!useAuthStore.getState().profile;
+  const shouldBlock = !initialized || mfaStatus.loading || (isFetchingProfile && !isSetupRoute && !hasProfileInState);
+  if (shouldBlock) {
     return <SectionFallback />;
   }
 
@@ -79,7 +86,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireUsername 
     return <Navigate to="/suspended" replace />;
   }
   
-  if (requireUsername && !profile?.username) {
+  if (requireUsername && profileNeedsSignupCompletion(profile)) {
     return <Navigate to="/signup/username" replace />;
   }
 

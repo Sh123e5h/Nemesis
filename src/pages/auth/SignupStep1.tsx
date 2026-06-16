@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { getOAuthRedirectUrl, setOAuthIntent, markAuthCallbackPending } from '../../lib/authRedirect';
+import { useAuthStore } from '../../store/useAuthStore';
+import { tokenManager } from '../../lib/tokenManager';
 import { Eye, EyeOff, ChevronDown, X, Check, AtSign, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../../components/SEO';
@@ -59,6 +62,7 @@ function LegalModal({ title, content, onClose }: LegalModalProps) {
 }
 
 export default function SignupStep1() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const oauthErrorMessage = searchParams.get('error');
 
@@ -143,6 +147,7 @@ export default function SignupStep1() {
     }
 
     setLoading(true);
+    setOAuthIntent('signup');
 
     // Cache profile for hybrid completion if fields were provided
     if (isLocalFilled) {
@@ -152,24 +157,76 @@ export default function SignupStep1() {
       localStorage.removeItem('pending_signup_profile');
     }
 
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/signup/username`,
-        scopes: 'openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-          include_granted_scopes: 'true',
-        },
-      }
-    });
+    try {
+      // ⚡ NATIVE GOOGLE SIGN-IN LOGIC
+      if ((window as any).plugins && (window as any).plugins.googleplus) {
+        console.log('[NativeAuth] Starting native Google login');
+        const googleUser = await new Promise<any>((resolve, reject) => {
+          (window as any).plugins.googleplus.login(
+            {
+              'webClientId': '151394384403-g9hcdcuv01rupiljqlbbn483epdpvm1g.apps.googleusercontent.com',
+              'offline': true,
+              'scopes': 'openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata'
+            },
+            resolve,
+            reject
+          );
+        });
 
-    if (oauthError) {
-      setError(oauthError.message);
+        console.log('[NativeAuth] Google user received:', googleUser?.email);
+
+        if (!googleUser.idToken) {
+          throw new Error('No identity token received from Google Play Services.');
+        }
+
+        const { data, error: authError } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: googleUser.idToken,
+        });
+
+        if (authError) {
+          console.error('[NativeAuth] Supabase exchange error:', authError);
+          throw authError;
+        }
+
+        if (data.session) {
+          console.log('[NativeAuth] Session established');
+
+          // Seed token manager with the native access token for scope verification in Step 2
+          if (googleUser.accessToken) {
+            tokenManager.setAccessToken(googleUser.accessToken);
+          }
+
+          markAuthCallbackPending();
+          await useAuthStore.getState().setSession(data.session);
+
+          // Use navigate instead of window.location.href to preserve SPA state and session
+          navigate('/signup/username', { replace: true });
+        }
+      } else {
+        // Fallback to browser-based OAuth
+        const { error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: getOAuthRedirectUrl('/signup/username'),
+            scopes: 'openid email profile https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata',
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+              include_granted_scopes: 'true',
+            },
+          }
+        });
+
+        if (oauthError) throw oauthError;
+      }
+    } catch (err: any) {
+      console.error('[NativeAuth] Final catch error:', err);
+      const errorMsg = typeof err === 'string' ? err : (err?.message || JSON.stringify(err));
+      setError(errorMsg || 'Google Registration failed');
       setLoading(false);
     }
-  }, [username, dob, gender, password, confirmPassword, termsAccepted, usernameAvailable]);
+  }, [username, dob, gender, password, confirmPassword, termsAccepted, usernameAvailable, navigate]);
 
 
 

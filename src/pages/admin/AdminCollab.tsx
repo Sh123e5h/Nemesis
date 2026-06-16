@@ -62,6 +62,7 @@ export default function AdminCollab() {
       const { error } = await supabase.rpc('admin_manage_note', {
         p_action: 'create',
         p_note_data: newNote as any,
+        p_note_id: null,
         p_admin_id: adminId
       });
       if (error) throw error;
@@ -80,6 +81,7 @@ export default function AdminCollab() {
     try {
       const { error } = await supabase.rpc('admin_manage_note', {
         p_action: 'delete',
+        p_note_data: null,
         p_note_id: id,
         p_admin_id: adminId
       });

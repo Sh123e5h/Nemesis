@@ -272,13 +272,19 @@ export default function GroupChat() {
     try {
       const { url: publicUrl, hash } = await uploadSmart(file, 'group-files');
 
-      const fileExt = file.name.split('.').pop() || '';
-      let simplifiedType = file.type || fileExt;
-      if (file.type.startsWith('image/')) simplifiedType = 'image';
-      else if (file.type.startsWith('video/')) simplifiedType = 'video';
-      else if (file.type.startsWith('audio/')) simplifiedType = 'audio';
-      else if (file.type === 'application/pdf') simplifiedType = 'pdf';
-      else if (file.name.match(/\.(doc|docx|txt|rtf|csv|xls|xlsx)$/i)) simplifiedType = 'document';
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+      const mimeType = file.type || '';
+      let simplifiedType = 'document';
+
+      if (mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].includes(fileExt)) {
+        simplifiedType = 'image';
+      } else if (mimeType.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(fileExt)) {
+        simplifiedType = 'video';
+      } else if (mimeType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].includes(fileExt)) {
+        simplifiedType = 'audio';
+      } else if (mimeType === 'application/pdf' || fileExt === 'pdf') {
+        simplifiedType = 'pdf';
+      }
 
       const { error: syncError } = await supabase.from('files').insert({
         group_id: group.id,

@@ -44,7 +44,7 @@ const HeaderContent = ({
 }: any) => {
   return (
     <header className="glass-header z-50 sticky top-0 transition-colors duration-300">
-      <div className="w-full bg-white/90 dark:bg-slate-900/90 cyberpunk:bg-black/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 cyberpunk:border-emerald-500/20 py-2 sm:py-3" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.5rem)' }}>
+      <div className="w-full bg-white/90 dark:bg-slate-900/90 cyberpunk:bg-black/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 cyberpunk:border-emerald-500/20 py-1 sm:py-2">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-4 min-w-0 shrink">
           <Link to="/home" className="text-base sm:text-xl font-bold text-sky-500 cyberpunk:text-emerald-400 tracking-tight flex items-center gap-2 min-w-0 shrink">
             <img src="/logo.svg" alt="logo" className="w-8 h-8 sm:w-8 sm:h-8" width={32} height={32} />
@@ -103,7 +103,7 @@ const HeaderContent = ({
 const BottomNavContent = ({ location, profile, prefetchData }: any) => {
   if (typeof document === 'undefined') return null;
   const portalRoot = document.body;
-  
+
   return createPortal(
     <nav className="md:hidden fixed left-1/2 -translate-x-1/2 w-[min(92%,calc(100vw-1rem))] backdrop-blur-2xl rounded-full z-50 px-1 py-1.5 shadow-premium glass-pile-active" style={{ bottom: 'max(1.15rem, calc(0.2rem + env(safe-area-inset-bottom, 0px)))' }}>
       <div className="flex justify-between items-center">
@@ -127,7 +127,7 @@ const BottomNavContent = ({ location, profile, prefetchData }: any) => {
           );
         })}
       </div>
-    </nav>, 
+    </nav>,
     portalRoot
   );
 };
@@ -153,7 +153,7 @@ const prefetchData = (item: NavItem, user: any, fetchSubjects: any, fetchGroups:
 export default function MainLayout() {
   const { profile, user } = useAuthStore();
   const { fetchSubjects, fetchGroups, fetchGamification, fetchPlanner, fetchUpcoming } = useDataStore();
-  
+
   const [activeAchievement, setActiveAchievement] = useState<{
     type: 'LEVEL_UP' | 'BADGE_EARNED';
     data: any;

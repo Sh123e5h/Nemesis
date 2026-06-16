@@ -129,7 +129,9 @@ export default function QuizView() {
   const isAnswered = answers[currentIndex] !== undefined;
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
+    <div
+      className="max-w-3xl mx-auto p-4 md:p-8 animate-in fade-in duration-500"
+    >
       <div className="flex items-center justify-between mb-6 md:mb-10">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] md:text-xs hover:text-sky-500 transition group bg-slate-100 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-200/50 dark:border-slate-800">
           <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back

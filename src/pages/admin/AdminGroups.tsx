@@ -13,6 +13,7 @@ interface GroupItem {
   profiles: {
     full_name: string;
     username: string;
+    avatar_url?: string | null;
   };
 }
 

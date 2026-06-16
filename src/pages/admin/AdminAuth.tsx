@@ -47,49 +47,92 @@ export default function AdminAuth() {
     setLoading(true);
     setError('');
 
-    const passwordHash = await hashPassword(password, email);
+    try {
+      const passwordHash = await hashPassword(password, email);
 
-    if (mode === 'setup') {
-      const { data, error: insertError } = await supabase
-        .rpc('setup_admin_user', { p_email: email, p_password_hash: passwordHash });
-      
-      if (insertError) {
-        setError(insertError.message);
-      } else {
+      if (mode === 'setup') {
+        const { data, error: insertError } = await supabase
+          .rpc('setup_admin_user', { p_email: email, p_password_hash: passwordHash });
+        
+        if (insertError) {
+          console.error('[AdminAuth] Setup error:', insertError);
+          setError(insertError.message || 'Failed to initialize admin account');
+          setLoading(false);
+          return;
+        }
+        
+        if (!data) {
+          console.error('[AdminAuth] Setup returned no data');
+          setError('Failed to initialize admin account: no response from server');
+          setLoading(false);
+          return;
+        }
+
         const newAdminId = data as string;
         sessionStorage.setItem('adminAuth', 'true');
         sessionStorage.setItem('adminId', newAdminId);
-        await supabase.from('audit_logs').insert({ admin_id: newAdminId, action: 'ADMIN_SETUP', target_type: 'system' });
-        navigate('/admin/dashboard');
-      }
-    } else {
-      // DEV BYPASS: The backend admin_users table and RPCs are missing. 
-      // Allow logging in with a hardcoded dev credential.
-      if (email === 'admin@nemesis.com' && password === 'admin123') {
-        // Grab any user ID to act as the admin ID so queries don't break
-        const { data: profiles } = await supabase.from('profiles').select('id').limit(1);
-        const fallbackAdminId = profiles?.[0]?.id || 'dev-bypass-id';
         
-        sessionStorage.setItem('adminAuth', 'true');
-        sessionStorage.setItem('adminId', fallbackAdminId);
+        // Non-blocking audit log - don't let it prevent successful login
+        try {
+          await supabase.from('audit_logs').insert({ 
+            admin_id: newAdminId, 
+            action: 'ADMIN_SETUP', 
+            target_type: 'system' 
+          });
+        } catch (auditErr) {
+          console.warn('[AdminAuth] Audit log failed (non-blocking):', auditErr);
+        }
+        
         navigate('/admin/dashboard');
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
-        .rpc('verify_admin_password', { p_email: email, p_hash: passwordHash })
-        .maybeSingle(); // Assumes the RPC returns a single row if matched
-      
-      if (fetchError || !data) {
-        setError("Invalid admin credentials");
       } else {
+        const { data, error: fetchError } = await supabase
+          .rpc('verify_admin_password', { p_email: email, p_hash: passwordHash })
+          .maybeSingle(); // Assumes the RPC returns a single row if matched
+        
+        if (fetchError) {
+          console.error('[AdminAuth] Verify error:', fetchError);
+          setError(fetchError.message || 'Authentication server error');
+          setLoading(false);
+          return;
+        }
+
+        if (!data) {
+          console.warn('[AdminAuth] No matching admin found for:', email);
+          setError("Invalid admin credentials");
+          setLoading(false);
+          return;
+        }
+
+        const adminId = (data as any).id;
+        if (!adminId) {
+          console.error('[AdminAuth] Admin data missing ID:', data);
+          setError("Invalid admin credentials");
+          setLoading(false);
+          return;
+        }
+
         sessionStorage.setItem('adminAuth', 'true');
-        sessionStorage.setItem('adminId', (data as any).id);
-        await supabase.from('audit_logs').insert({ admin_id: (data as any).id, action: 'ADMIN_LOGIN', target_type: 'system' });
+        sessionStorage.setItem('adminId', adminId);
+        
+        // Non-blocking audit log - don't let it prevent successful login
+        try {
+          await supabase.from('audit_logs').insert({ 
+            admin_id: adminId, 
+            action: 'ADMIN_LOGIN', 
+            target_type: 'system' 
+          });
+        } catch (auditErr) {
+          console.warn('[AdminAuth] Audit log failed (non-blocking):', auditErr);
+        }
+
+        console.log('[AdminAuth] Login successful, navigating to dashboard');
         navigate('/admin/dashboard');
       }
+    } catch (err: any) {
+      console.error('[AdminAuth] Unexpected error:', err);
+      setError(err.message || 'An unexpected error occurred');
+      setLoading(false);
     }
-    setLoading(false);
   }, [email, password, mode, navigate]);
 
 

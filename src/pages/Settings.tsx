@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchGDriveStatus, restoreFromGDrive, applyCloudRestore, type GDriveQuota } from '../lib/gdrive';
 import { useCloudSync } from '../hooks/useCloudSync';
 import AlertModal from '../components/ui/AlertModal';
+import { getOAuthRedirectUrl } from '../lib/authRedirect';
 
 const GoogleDriveLogo = ({ size = 22 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -50,7 +51,7 @@ export default function Settings() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.href,
+        redirectTo: getOAuthRedirectUrl('/settings'),
         scopes: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file',
         queryParams: {
           access_type: 'offline',

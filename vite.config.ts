@@ -170,15 +170,19 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks(id) {
-          // 1. App Level Modals
-          if (id.includes('SearchModal')) return 'app-search-modal';
-          if (id.includes('PomodoroTimer')) return 'app-pomodoro-timer';
-
-          // 2. Bundle local UI components together to reduce tiny chunk load failures
+          // 1. Bundle local UI components together to reduce tiny chunk load failures
           if (id.includes('src/components/ui/')) return 'vendor-ui-shared';
 
           // 2. Vendor dependencies
           if (id.includes('node_modules')) {
+            if (
+              /node_modules\/react($|\/)/.test(id) ||
+              /node_modules\/react-dom($|\/)/.test(id) ||
+              /node_modules\/react-is($|\/)/.test(id) ||
+              /node_modules\/scheduler($|\/)/.test(id)
+            ) {
+              return 'vendor-react-core';
+            }
             if (
               id.includes('react/') || 
               id.includes('react-dom/') || 
@@ -189,7 +193,7 @@ export default defineConfig({
             }
             if (id.includes('react-router') || id.includes('remix-run')) return 'vendor-router';
             if (id.includes('dexie') || id.includes('swr')) return 'vendor-db';
-            if (id.includes('framer-motion')) return 'vendor-motion';
+            if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) return 'vendor-motion';
             if (id.includes('lucide-react')) return 'vendor-icons';
             if (id.includes('date-fns') || id.includes('zustand') || id.includes('clsx')) return 'vendor-utils';
             if (id.includes('react-markdown') || id.includes('remark-gfm')) return 'vendor-markdown';

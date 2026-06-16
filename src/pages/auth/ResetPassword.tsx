@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Lock, CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
@@ -13,22 +13,67 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
   
+  // Failsafe to hold tokens in memory in case the Supabase client loses them
+  const recoveryTokens = useRef<{ access_token: string, refresh_token: string } | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase SDK auto-recovers the session from the URL hash tokens
+    // Check for errors in the URL immediately (e.g., from expired or invalid links)
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlError = hashParams.get('error_description') || searchParams.get('error_description');
+    
+    if (urlError) {
+      setError(urlError.replace(/\+/g, ' '));
+      setSessionReady(true); // Stop the spinner so the error is visible
+      return;
+    }
+
+    // ⚡ PKCE / IMPLICIT FLOW BRIDGING: 
+    // Our custom Edge Function mailer generates Implicit Flow links (#access_token=...)
+    // because it can't securely receive the client's PKCE code verifier.
+    // Since our Supabase client is configured for PKCE, it natively ignores the #access_token.
+    // We manually extract and inject the session here to bridge the two flows!
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+
+    if (accessToken && refreshToken) {
+      recoveryTokens.current = { access_token: accessToken, refresh_token: refreshToken };
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error: sessionError }) => {
+          if (sessionError) {
+            setError(sessionError.message);
+          }
+          // Clear the hash from the URL so it's not lingering around
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          setSessionReady(true);
+        });
+      return;
+    }
+
+    // Supabase SDK auto-recovers the session from the URL hash/query tokens
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSessionReady(true);
-      }
-      if (event === 'SIGNED_IN') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setSessionReady(true);
       }
     });
 
     // Also check for an existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true);
+    supabase.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+      if (session) {
+        setSessionReady(true);
+      } else if (sessionError) {
+        setError(sessionError.message);
+        setSessionReady(true);
+      } else {
+        // In PKCE flow, if there's no session and no code in the URL, the link might be broken
+        const hasCode = searchParams.has('code');
+        if (!hasCode && !urlError) {
+          setError('No recovery token found. The link may be broken or expired.');
+          setSessionReady(true);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -49,12 +94,27 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
+
+    // ⚡ FAILSAFE: Ensure the session exists right before updating
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session && recoveryTokens.current) {
+      console.log('[ResetPassword] Session lost! Re-injecting recovery tokens...');
+      const { error: injectError } = await supabase.auth.setSession(recoveryTokens.current);
+      if (injectError) {
+        setError('Failed to restore recovery session: ' + injectError.message);
+        setLoading(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
       setError(error.message);
     } else {
       setSuccess(true);
+      // Remove tokens from memory once successful
+      recoveryTokens.current = null;
       setTimeout(() => {
         navigate('/home', { replace: true });
       }, 2500);

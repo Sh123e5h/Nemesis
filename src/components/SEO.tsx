@@ -28,7 +28,9 @@ const PUBLIC_ROUTES = new Set([
   '/welcome',
   '/login',
   '/signup',
+  '/signup/username',
   '/forgot-password',
+  '/reset-password',
   '/terms',
   '/privacy',
   '/dev-team',
@@ -36,7 +38,7 @@ const PUBLIC_ROUTES = new Set([
 
 const SEO_CONFIG: Record<string, { title: string; description?: string; image?: string }> = {
   '/': { 
-    title: 'Unified Academic Coordination Hub - Nemesis | High-Performance Study Platform', 
+    title: 'Nemesis | Your Unified Academic Coordination Hub', 
     description: 'Nemesis is the elite academic coordination hub for modern students. Synchronize study materials with Google Drive, collaborate in real-time groups, and manage your academic journey with precision.' 
   },
   '/welcome': { 
@@ -425,6 +427,68 @@ export const SEO: FC<SEOProps> = ({ title, description, keywords }) => {
               "name": "Genesis Development Team",
               "url": "https://nemesiss.in/dev-team"
             }
+          })
+        }</script>
+      )}
+
+            {/* ✅ SITELINKS OPTIMIZATION: Explicit SiteNavigationElement Schema */}
+      {path === '/' && (
+        <script type="application/ld+json">{
+          JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Nemesis Primary Navigation",
+            "itemListElement": [
+              {
+                "@type": "SiteNavigationElement",
+                "position": 1,
+                "name": "Welcome",
+                "description": "Embark on your academic journey with the primary Nemesis orientation protocol.",
+                "url": "https://nemesiss.in/welcome"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 2,
+                "name": "Login",
+                "description": "Securely access your personal study hub and high-performance research tools.",
+                "url": "https://nemesiss.in/login"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 3,
+                "name": "Sign Up",
+                "description": "Register to unlock zero-latency collaboration and AI-driven study coordination.",
+                "url": "https://nemesiss.in/signup"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 4,
+                "name": "Dev Team",
+                "description": "Meet the visionary team behind the Nemesis core and future academic intelligence.",
+                "url": "https://nemesiss.in/dev-team"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 5,
+                "name": "Terms and Conditions",
+                "description": "Detailed standards governing elite usage and coordination on the Nemesis network.",
+                "url": "https://nemesiss.in/terms"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 6,
+                "name": "Privacy Policy",
+                "description": "Maintaining total structural encryption and private research silos for every member.",
+                "url": "https://nemesiss.in/privacy"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 7,
+                "name": "Forget Password",
+                "description": "Securely recover your account credentials via our high-integrity recovery bridge.",
+                "url": "https://nemesiss.in/forgot-password"
+              }
+            ]
           })
         }</script>
       )}

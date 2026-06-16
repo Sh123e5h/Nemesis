@@ -6,12 +6,21 @@ import { motion } from 'framer-motion';
 import SEO from '../../components/SEO';
 import { useAuthStore } from '../../store/useAuthStore';
 import { syncEngine } from '../../lib/SyncEngine';
+import { profileNeedsSignupCompletion } from '../../lib/authRedirect';
 
 const QUOTES = [
   { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela", image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
   { text: "The beautiful thing about learning is that no one can take it away from you.", author: "B.B. King", image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
   { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi", image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2073&q=80" },
-  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin", image: "https://images.unsplash.com/photo-1513258496099-48168024aec0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" }
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin", image: "https://images.unsplash.com/photo-1513258496099-48168024aec0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "The function of education is to teach one to think intensively and to think critically. Intelligence plus character – that is the goal of true education.", author: "Dr. Martin Luther King, Jr.", image: "https://images.unsplash.com/photo-1561089489-f13d5e730d72?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "Education is the ability to listen to almost anything without losing your temper or your self-confidence.", author: "Robert Frost", image: "https://images.unsplash.com/photo-1453733190371-0a9bedd82893?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "Intellectual growth should commence at birth and cease only at death.", author: "Albert Einstein", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "It is the mark of an educated mind to be able to entertain a thought without accepting it.", author: "Aristotle", image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },  
+  { text: "The illiterate of the future will not be the person who cannot read. It will be the person who does not know how to learn", author: "Alvin Toffler", image: "https://images.unsplash.com/photo-1462536943532-57a629f6cc60?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "Why should society feel responsible only for the education of children, and not for the education of all adults of every age?", author: "Erich Fromm", image: "https://images.unsplash.com/photo-1462536943532-57a629f6cc60?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "An education isn't how much you have committed to memory, or even how much you know. It's being able to differentiate between what you know and what you don't know.", author: "Anatole France", image: "https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" },
+  { text: "Education is a better safeguard of liberty than a standing army.", author: "Edward Everett", image: "https://images.unsplash.com/photo-1635424239131-32dc44986b56?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" }
 ];
 
 export default function Login() {
@@ -163,7 +172,14 @@ export default function Login() {
           });
         }, 2000);
 
-        navigate('/home', { replace: true });
+        const profile = useAuthStore.getState().profile;
+        if (profileNeedsSignupCompletion(profile)) {
+          navigate('/signup/username', { replace: true });
+        } else if (profile && !profile.onboarding_completed) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          navigate('/home', { replace: true });
+        }
       } else {
         throw new Error('Authentication handshake failed. Please try again.');
       }

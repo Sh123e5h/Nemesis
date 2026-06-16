@@ -187,6 +187,12 @@ export const useAuthStore = create<AuthState>()(
             // after the local session is cleared (especially in the OTP interception flow).
             set({ user: null, session: null, profile: null, isFetchingProfile: false });
             tokenManager.reset();
+          } else if (event === 'PASSWORD_RECOVERY') {
+            // PASSWORD_RECOVERY: The user clicked a password reset link.
+            // We intentionally do NOT process this as a normal login — doing so would
+            // trigger a profile fetch and cause GuestRoute to redirect away from /reset-password.
+            // The ResetPassword page handles this event itself via its own onAuthStateChange listener.
+            console.log('[Auth] PASSWORD_RECOVERY event detected — deferring to ResetPassword page.');
           } else {
             // Sync Google Drive provider tokens via centralized token manager
             const token = session?.provider_token;

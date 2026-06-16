@@ -27,18 +27,27 @@ class SyncEngine {
   private dirtyShards = new Set<SyncShard>();
   private syncTimeout: any = null;
   private isInitialized = false;
+  private currentUserId: string | null = null;
+  private realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+  private networkListener: any = null;
+  private appListener: any = null;
+  private staleInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     // Initialization happens via initialize() called from a global entry point
   }
 
   public async initialize() {
-    if (this.isInitialized) return;
-    
     const user = useAuthStore.getState().user;
     if (!user) return;
 
+    if (this.isInitialized && this.currentUserId === user.id) return;
+    if (this.isInitialized) {
+      this.shutdown();
+    }
+
     this.isInitialized = true;
+    this.currentUserId = user.id;
     this.initializeListeners(user.id);
     this.initializeLifecycleListeners();
     this.requestStoragePersistence();
@@ -55,13 +64,41 @@ class SyncEngine {
     setTimeout(() => this.checkAndSyncIfStale(), 3000);
 
     // Periodic catch-up check (every 1 hour) to ensure 24h backup guarantee
-    setInterval(() => this.checkAndSyncIfStale(), 60 * 60 * 1000);
+    this.staleInterval = setInterval(() => this.checkAndSyncIfStale(), 60 * 60 * 1000);
+  }
+
+  public shutdown() {
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
+    }
+    if (this.staleInterval) {
+      clearInterval(this.staleInterval);
+      this.staleInterval = null;
+    }
+    if (this.realtimeChannel) {
+      supabase.removeChannel(this.realtimeChannel);
+      this.realtimeChannel = null;
+    }
+    if (this.networkListener) {
+      this.networkListener.remove?.();
+      this.networkListener = null;
+    }
+    if (this.appListener) {
+      this.appListener.remove?.();
+      this.appListener = null;
+    }
+    this.dirtyShards.clear();
+    this.currentUserId = null;
+    this.isInitialized = false;
+    this.status = { state: 'idle', lastSyncAt: null };
+    this.notify();
   }
 
   private async initializeListeners(userId: string) {
     // Listen for changes across all relevant tables
     // We use a single channel for efficiency
-    supabase.channel('sync-engine-realtime')
+    this.realtimeChannel = supabase.channel(`sync-engine-realtime-${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_messages' }, (payload) => {
         // payload.new is not always present for DELETE events, check carefully
         const data = (payload.new || payload.old) as any;
@@ -164,6 +201,8 @@ class SyncEngine {
         console.log('[SyncEngine] Network restored. Checking sync status...');
         this.checkAndSyncIfStale();
       }
+    }).then(listener => {
+      this.networkListener = listener;
     });
 
     // Listen for App Lifecycle (Foreground/Resume)
@@ -172,6 +211,8 @@ class SyncEngine {
         console.log('[SyncEngine] App resumed. Checking sync status...');
         this.checkAndSyncIfStale();
       }
+    }).then(listener => {
+      this.appListener = listener;
     });
   }
 

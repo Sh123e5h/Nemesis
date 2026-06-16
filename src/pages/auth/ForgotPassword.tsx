@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Send, Shield, Sparkles } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { mailer } from '../../lib/mailer';
+import { getOAuthRedirectUrl } from '../../lib/authRedirect';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -18,11 +19,18 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/reset-password`;
+      const redirectUrl = getOAuthRedirectUrl('/reset-password');
       await mailer.sendPasswordReset(email.trim(), redirectUrl);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      const msg: string = err.message || '';
+      // For security (anti-enumeration), treat "user not found" as success.
+      // This prevents attackers from checking which emails are registered.
+      if (msg.toLowerCase().includes('not found') || msg.toLowerCase().includes('no user')) {
+        setSuccess(true);
+      } else {
+        setError(msg || 'Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

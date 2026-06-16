@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { 
   Globe, 
@@ -113,7 +113,9 @@ export default function AdminSearch() {
 
   const fetchAuditLogs = useCallback(async () => {
     try {
+      const adminId = sessionStorage.getItem('adminId');
       const { data, error } = await supabase.rpc('admin_get_audit_logs', {
+        p_admin_id: adminId,
         p_limit: 100,
         p_offset: 0
       });

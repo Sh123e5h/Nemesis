@@ -1,4 +1,126 @@
+-- 0. ADMIN AUTHENTICATION SCHEMA & TABLES
+
+-- Create admin schema if it doesn't exist
+CREATE SCHEMA IF NOT EXISTS admin_internal;
+
+-- Admin users table: stores admin credentials and metadata
+CREATE TABLE IF NOT EXISTS admin_internal.admin_users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL UNIQUE,
+  password_hash text NOT NULL,
+  role text NOT NULL CHECK (role IN ('super_admin', 'moderator', 'viewer')),
+  is_active boolean DEFAULT true,
+  last_login timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Create index for faster email lookups
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_internal.admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_active ON admin_internal.admin_users(is_active) WHERE is_active = true;
+
+-- ADMIN AUTHENTICATION SUITE
+
+/**
+ * setup_admin_user: Initialize the first admin account (called during setup)
+ * @param p_email Admin email address
+ * @param p_password_hash SHA-256 hashed password (from client)
+ * @returns UUID of the newly created admin user
+ */
+CREATE OR REPLACE FUNCTION public.setup_admin_user(
+  p_email TEXT,
+  p_password_hash TEXT
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_admin_id uuid;
+BEGIN
+  -- Check if admin_users table already has data (prevent setup if already configured)
+  IF EXISTS (SELECT 1 FROM admin_internal.admin_users LIMIT 1) THEN
+    RAISE EXCEPTION 'Admin system already initialized';
+  END IF;
+
+  -- Insert the first admin user
+  INSERT INTO admin_internal.admin_users (email, password_hash, role, is_active)
+  VALUES (
+    lower(trim(p_email)),
+    p_password_hash,
+    'super_admin',
+    true
+  )
+  RETURNING id INTO v_admin_id;
+
+  RETURN v_admin_id;
+END;
+$function$;
+
+/**
+ * verify_admin_password: Authenticate admin by email and password hash
+ * @param p_email Admin email address
+ * @param p_hash SHA-256 hashed password (from client)
+ * @returns Admin user row if credentials match, NULL if not
+ */
+CREATE OR REPLACE FUNCTION public.verify_admin_password(
+  p_email TEXT,
+  p_hash TEXT
+)
+RETURNS TABLE (id uuid, email text, role text, is_active boolean)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    au.id,
+    au.email,
+    au.role,
+    au.is_active
+  FROM admin_internal.admin_users au
+  WHERE lower(trim(au.email)) = lower(trim(p_email))
+    AND au.password_hash = p_hash
+    AND au.is_active = true
+  LIMIT 1;
+END;
+$function$;
+
+/**
+ * is_admin_users_empty: Check if the admin system has been initialized
+ * Used during the first-time setup check
+ * @returns true if no admin users exist, false otherwise
+ */
+CREATE OR REPLACE FUNCTION public.is_admin_users_empty()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  RETURN NOT EXISTS (SELECT 1 FROM admin_internal.admin_users LIMIT 1);
+END;
+$function$;
+
 -- 1. DASHBOARD STATS
+CREATE OR REPLACE FUNCTION public.validate_admin_session(p_admin_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM admin_internal.admin_users au
+    WHERE au.id = p_admin_id
+      AND au.is_active = true
+  );
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.get_admin_dashboard_stats()
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -770,4 +892,3 @@ GRANT EXECUTE ON FUNCTION nemesis_rpc.admin_global_search(TEXT) TO anon, authent
 GRANT EXECUTE ON FUNCTION public.admin_global_search(TEXT) TO anon, authenticated;
 
 NOTIFY pgrst, 'reload schema';
-

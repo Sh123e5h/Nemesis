@@ -1,0 +1,263 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 580" width="580" height="580">
+  <defs>
+
+    <!-- ============ NUCLEUS ============ -->
+    <radialGradient id="coreOuter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1a0000"/>
+      <stop offset="22%"  stop-color="#9B2000"/>
+      <stop offset="52%"  stop-color="#E05500"/>
+      <stop offset="74%"  stop-color="#FF9200"/>
+      <stop offset="100%" stop-color="#FFB347" stop-opacity="0.25"/>
+    </radialGradient>
+    <radialGradient id="coreInner" cx="44%" cy="40%" r="60%">
+      <stop offset="0%"   stop-color="#000000"/>
+      <stop offset="42%"  stop-color="#150200"/>
+      <stop offset="100%" stop-color="#6B0E00"/>
+    </radialGradient>
+    <radialGradient id="coreHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#FF7000" stop-opacity="0.9"/>
+      <stop offset="35%"  stop-color="#CC3300" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#800000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- ============ ORBIT STROKES ============ -->
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#6B1A0C"/>
+      <stop offset="38%"  stop-color="#C44020"/>
+      <stop offset="68%"  stop-color="#D4522A"/>
+      <stop offset="100%" stop-color="#7B241C"/>
+    </linearGradient>
+
+    <!-- ============ EASTER EGG NODES — app Sky Blue ============ -->
+    <!-- 6 nodes = 6-char invite code; connecting all 6 → Star of David (hexagram) -->
+    <radialGradient id="nodeGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#E0F8FF"/>
+      <stop offset="40%"  stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0369A1" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- ============ PLANETS ============ -->
+
+    <!-- EARTH — app primary Sky Blue #0EA5E9 = Study Organizer feature -->
+    <radialGradient id="earthGrad" cx="34%" cy="33%" r="66%">
+      <stop offset="0%"   stop-color="#BAE6FD"/>
+      <stop offset="32%"  stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </radialGradient>
+
+    <!-- MOON — dark, minimal = Chat feature ("coordination, not social media") -->
+    <radialGradient id="moonGrad" cx="34%" cy="33%" r="66%">
+      <stop offset="0%"   stop-color="#9A9A9A"/>
+      <stop offset="52%"  stop-color="#4A4A4A"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </radialGradient>
+
+    <!-- SATURN — ringed = Group Spaces (ring = circle of students) -->
+    <radialGradient id="saturnGrad" cx="34%" cy="33%" r="66%">
+      <stop offset="0%"   stop-color="#E0B84A"/>
+      <stop offset="50%"  stop-color="#8A6200"/>
+      <stop offset="100%" stop-color="#3D2E00"/>
+    </radialGradient>
+
+    <!-- MARS — deep red = Planner/Tasks (overdue tasks highlighted red per PRD) -->
+    <radialGradient id="marsGrad" cx="34%" cy="33%" r="66%">
+      <stop offset="0%"   stop-color="#E07848"/>
+      <stop offset="48%"  stop-color="#8B3018"/>
+      <stop offset="100%" stop-color="#3A1008"/>
+    </radialGradient>
+
+    <!-- ============ FILTERS ============ -->
+    <filter id="coreGlowF" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="orbitGlowF" x="-10%" y="-60%" width="120%" height="220%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="planetGlowF" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="nodeGlowF" x="-300%" y="-300%" width="700%" height="700%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="hubGlowF" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+  </defs>
+
+  <!-- ============================================================ -->
+  <!--  ALL ELEMENTS centered at (290, 290)                         -->
+  <!-- ============================================================ -->
+  <g transform="translate(290,290)">
+
+    <!-- Very faint ambient halo — nucleus breathing -->
+    <circle cx="0" cy="0" r="200" fill="url(#coreHalo)" opacity="0.06"/>
+    <circle cx="0" cy="0" r="120" fill="url(#coreHalo)" opacity="0.11"/>
+
+    <!-- ============================================================ -->
+    <!--  3 ORBITAL RINGS                                             -->
+    <!--  Easter egg: 3 rings = Subject → Topic → Files hierarchy     -->
+    <!-- ============================================================ -->
+
+    <!-- Orbit 1 — Horizontal — Subject level -->
+    <ellipse cx="0" cy="0" rx="220" ry="68"
+      fill="none" stroke="url(#orbitGrad)" stroke-width="15.5"
+      stroke-linecap="round" opacity="0.96"
+      filter="url(#orbitGlowF)"/>
+
+    <!-- Orbit 2 — +60° — Topic level -->
+    <ellipse cx="0" cy="0" rx="220" ry="68"
+      fill="none" stroke="url(#orbitGrad)" stroke-width="15.5"
+      stroke-linecap="round" opacity="0.96"
+      transform="rotate(60)"
+      filter="url(#orbitGlowF)"/>
+
+    <!-- Orbit 3 — −60° — Files level -->
+    <ellipse cx="0" cy="0" rx="220" ry="68"
+      fill="none" stroke="url(#orbitGrad)" stroke-width="15.5"
+      stroke-linecap="round" opacity="0.96"
+      transform="rotate(-60)"
+      filter="url(#orbitGlowF)"/>
+
+
+    <!-- ============================================================ -->
+    <!--  EASTER EGG: 6 SKY-BLUE GLOWING NODES                       -->
+    <!--  Placed at the exact mathematical crossing points of         -->
+    <!--  the 3 ellipses (rx=220, ry=68 at 0°, ±60°)                -->
+    <!--  6 nodes = 6-character invite code (per PRD)                 -->
+    <!--  Connect all 6 → Star of David / hexagram hidden inside     -->
+    <!--  Color: app primary #0EA5E9 — links logo to UI palette      -->
+    <!-- ============================================================ -->
+
+    <!--
+      Computed crossing coordinates (verified mathematically):
+      E1 ∩ E2: ( 103, +60) and (103, -60)  [right two]
+      E1 ∩ E3: (-103, +60) and (-103, -60) [left two]
+      E2 ∩ E3: (0, -120)  and  (0, +120)   [top and bottom]
+      → form a regular hexagon at r ≈ 120
+    -->
+
+    <!-- Hidden hexagram lines (very faint — true Easter egg geometry) -->
+    <!-- Triangle 1: top → lower-right → lower-left -->
+    <polygon points="0,-120 103,60 -103,60"
+      fill="none" stroke="#0EA5E9" stroke-width="0.6" opacity="0.12"/>
+    <!-- Triangle 2: bottom → upper-right → upper-left -->
+    <polygon points="0,120 103,-60 -103,-60"
+      fill="none" stroke="#0EA5E9" stroke-width="0.6" opacity="0.12"/>
+
+    <!-- The 6 glowing nodes -->
+    <g filter="url(#nodeGlowF)">
+      <!-- E1 ∩ E2  right-lower -->
+      <circle cx="103"  cy="60"   r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+      <!-- E1 ∩ E3  right-upper -->
+      <circle cx="103"  cy="-60"  r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+      <!-- E2 ∩ E3  top -->
+      <circle cx="0"    cy="-120" r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+      <!-- E1 ∩ E2  left-upper -->
+      <circle cx="-103" cy="-60"  r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+      <!-- E1 ∩ E3  left-lower -->
+      <circle cx="-103" cy="60"   r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+      <!-- E2 ∩ E3  bottom -->
+      <circle cx="0"    cy="120"  r="5.5" fill="url(#nodeGrad)" opacity="0.88"/>
+    </g>
+
+
+    <!-- ============================================================ -->
+    <!--  NUCLEUS — The Hub                                           -->
+    <!--  Central connecting point of all features in the app.        -->
+    <!--  Styled as a black hole eye = gravity of knowledge           -->
+    <!-- ============================================================ -->
+
+    <!-- Outer energy halo -->
+    <circle cx="0" cy="0" r="96" fill="url(#coreHalo)" opacity="0.48"
+      filter="url(#coreGlowF)"/>
+    <!-- Body -->
+    <circle cx="0" cy="0" r="78" fill="url(#coreOuter)"/>
+    <!-- Black-hole singularity -->
+    <circle cx="0" cy="0" r="46" fill="url(#coreInner)"/>
+    <!-- Accretion glow ring -->
+    <circle cx="0" cy="0" r="48" fill="none"
+      stroke="#FF6600" stroke-width="1.2" opacity="0.22"/>
+    <!-- Lens shine -->
+    <ellipse cx="-13" cy="-15" rx="13" ry="7"
+      fill="white" opacity="0.09" transform="rotate(-30,-13,-15)"/>
+
+
+    <!-- ============================================================ -->
+    <!--  4 PLANETS = 4 CORE FEATURES                                 -->
+    <!-- ============================================================ -->
+
+    <!-- ── EARTH / Sky Blue ── -->
+    <!-- Feature: Study Material Organizer                            -->
+    <!-- Easter egg: planet color IS the app's primary #0EA5E9       -->
+    <!-- Position: right tip of horizontal Orbit 1  (220, 0)         -->
+    <g transform="translate(220,0)" filter="url(#planetGlowF)">
+      <circle r="26" fill="url(#earthGrad)" stroke="#075985" stroke-width="1.5"/>
+      <!-- continent -->
+      <path d="M-5,-12 Q3,-9 10,-3 Q7,6 0,9 Q-9,6 -12,0 Q-12,-9 -5,-12Z"
+        fill="#15803D" opacity="0.72"/>
+      <path d="M7,2 Q13,-1 16,6 Q13,13 7,13 Q2,9 7,2Z"
+        fill="#15803D" opacity="0.55"/>
+      <circle cx="7" cy="-15" r="5.5" fill="#15803D" opacity="0.45"/>
+      <!-- cloud glint -->
+      <ellipse cx="-8" cy="-7" rx="5.5" ry="2.5"
+        fill="white" opacity="0.22" transform="rotate(-22,-8,-7)"/>
+    </g>
+
+    <!-- ── MOON / Dark Grey ── -->
+    <!-- Feature: Group Chat                                          -->
+    <!-- Easter egg: deliberately dark & minimal = "coordination      -->
+    <!-- chat, not social media" (PRD philosophy: simple, no DMs)    -->
+    <!-- Position: left tip of horizontal Orbit 1  (-220, 0)         -->
+    <g transform="translate(-220,0)" filter="url(#planetGlowF)">
+      <circle r="22" fill="url(#moonGrad)" stroke="#111" stroke-width="1.5"/>
+      <!-- craters — absence of life = minimalist chat -->
+      <circle cx="-4" cy="-4" r="4.5" fill="#2A2A2A" opacity="0.65"/>
+      <circle cx="6"  cy="6"  r="3"   fill="#2A2A2A" opacity="0.5"/>
+      <circle cx="-7" cy="7"  r="2"   fill="#222"    opacity="0.45"/>
+      <ellipse cx="5" cy="-9" rx="4" ry="2"
+        fill="white" opacity="0.11"/>
+    </g>
+
+    <!-- ── SATURN / Gold + Ring ── -->
+    <!-- Feature: Group Spaces                                        -->
+    <!-- Easter egg: the RING around Saturn = circle of students,    -->
+    <!-- same as the invite-code ring that bonds a group together     -->
+    <!-- Position: upper-left tip of Orbit 2 (+60°)  (-110, -190)   -->
+    <g transform="translate(-110,-190)" filter="url(#planetGlowF)">
+      <!-- ring behind planet -->
+      <ellipse cx="0" cy="0" rx="35" ry="8.5"
+        fill="none" stroke="#C8960B" stroke-width="2.5" opacity="0.55"/>
+      <circle r="21" fill="url(#saturnGrad)" stroke="#3D2E00" stroke-width="1.5"/>
+      <!-- ring in front of planet (clipped top half) -->
+      <path d="M-35,0 Q-35,-8.5 0,-8.5 Q35,-8.5 35,0"
+        fill="none" stroke="#C8960B" stroke-width="2.5" opacity="0.0"/>
+      <ellipse cx="0" cy="0" rx="35" ry="8.5"
+        fill="none" stroke="#C8960B" stroke-width="2.5" opacity="0.55"
+        clip-path="none"/>
+      <!-- shine -->
+      <ellipse cx="5" cy="-9" rx="5" ry="2.5"
+        fill="white" opacity="0.14"/>
+    </g>
+
+    <!-- ── MARS / Deep Red ── -->
+    <!-- Feature: Group Planner / Tasks                               -->
+    <!-- Easter egg: red = overdue tasks highlighted red (PRD §5.4)  -->
+    <!-- Position: lower-right tip of Orbit 3 (−60°)  (110, +190)   -->
+    <g transform="translate(110,190)" filter="url(#planetGlowF)">
+      <circle r="21" fill="url(#marsGrad)" stroke="#5D1A08" stroke-width="1.5"/>
+      <!-- surface texture → like a task checklist half-done -->
+      <path d="M-5,-9 Q0,-6 6,-9 Q10,-3 3,3 Q-3,7 -10,3 Q-12,-3 -5,-9Z"
+        fill="#C0392B" opacity="0.30"/>
+      <ellipse cx="4" cy="-8" rx="5" ry="2.5"
+        fill="white" opacity="0.13"/>
+    </g>
+
+  </g>
+  <!-- ============================================================ -->
+</svg>

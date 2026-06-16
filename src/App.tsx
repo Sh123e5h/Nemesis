@@ -1,6 +1,14 @@
 import { useEffect, useState, Suspense } from 'react';
 import { lazyWithRetry as lazy } from './lib/lazyWithRetry';
-import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import {
+  consumeOAuthIntent,
+  hasOAuthCallbackParams,
+  markAuthCallbackPending,
+  OAUTH_CALLBACK_DESTINATIONS,
+  profileNeedsSignupCompletion,
+  resolveOAuthCallbackTarget,
+} from './lib/authRedirect';
 import { useAuthStore } from './store/useAuthStore';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { supabase } from './lib/supabase';
@@ -114,21 +122,39 @@ function AdminAuthGate() {
     async function verifyAdmin() {
       if (!hasSession) return;
       try {
-        // Backend validation: verify the admin ID still exists and is active
-        const { data: isEmpty, error } = await supabase.rpc('is_admin_users_empty');
+        const adminId = sessionStorage.getItem('adminId');
+        if (!adminId) {
+          console.error('[AdminAuthGate] Missing admin identity in session');
+          throw new Error('Missing admin identity');
+        }
+
+        // Backend validation: verify the admin ID still exists and is active.
+        // This RPC is intentionally tiny and should return true only for active admins.
+        const { data: isValid, error } = await supabase.rpc('validate_admin_session', {
+          p_admin_id: adminId
+        });
+        
         if (error) {
-          console.warn('Admin backend check failed, using session auth:', error.message);
+          console.error('[AdminAuthGate] RPC validation error:', error);
+          // Don't invalidate on RPC error - allow user to continue
+          // This handles cases where the RPC might not exist yet
           return;
         }
 
-        if (isEmpty === true) {
-          // No admin users exist — the session is stale
+        if (isValid !== true) {
+          console.warn('[AdminAuthGate] Session validation returned false');
           sessionStorage.removeItem('adminAuth');
           sessionStorage.removeItem('adminId');
           setIsInvalidated(true);
         }
-      } catch {
-        // Ignore network/unexpected errors to preserve graceful degradation
+      } catch (err) {
+        console.error('[AdminAuthGate] Validation failed:', err);
+        // Only invalidate if we get a critical error, not RPC errors
+        if (err instanceof Error && err.message === 'Missing admin identity') {
+          sessionStorage.removeItem('adminAuth');
+          sessionStorage.removeItem('adminId');
+          setIsInvalidated(true);
+        }
       }
     }
     verifyAdmin();
@@ -136,6 +162,9 @@ function AdminAuthGate() {
 
   if (isInvalidated || (!hasSession && location.pathname !== '/admin')) {
     // If the backend invalidated the session, or they aren't logged in, redirect to login
+    if (location.pathname === '/admin') {
+      return <Outlet />; // Render the login page directly instead of looping
+    }
     return <Navigate to="/admin" replace />;
   }
 
@@ -164,16 +193,73 @@ function AdminAuthGate() {
  * 3. isFetchingProfile: don't redirect while profile is loading — we don't yet
  *    know whether the user has finished onboarding.
  */
-function GuestRoute({ children }: { children: React.ReactNode }) {
-  const { session, profile, isFetchingProfile } = useAuthStore();
+function GuestRoute({
+  children,
+  allowWithSession = false,
+}: {
+  children: React.ReactNode;
+  allowWithSession?: boolean;
+}) {
+  const { session, profile, isFetchingProfile, initialized } = useAuthStore();
+
+  // Pages like /reset-password need an active recovery session to work.
+  if (allowWithSession) {
+    return <>{children}</>;
+  }
+
+  // ⚡ PERF: Don't block guest pages while auth initializes.
+  // Guest pages (Landing, Login, Signup) are fully renderable without knowing
+  // the auth state — render them immediately. If the user IS logged in, we'll
+  // redirect once initialization completes. This eliminates the 1-3s blank screen
+  // on cold loads caused by waiting for Supabase getSession().
+  if (!initialized) {
+    return <>{children}</>;
+  }
 
   // Only redirect when we definitively know the user is fully authenticated.
   // Wait for isFetchingProfile=false so we don't redirect before profile loads.
-  if (session && !isFetchingProfile && profile?.username) {
+  if (session && !isFetchingProfile) {
+    if (profileNeedsSignupCompletion(profile)) {
+      return <Navigate to="/signup/username" replace />;
+    }
+
+    if (profile && !profile.onboarding_completed) {
+      return <Navigate to="/onboarding" replace />;
+    }
+
     return <Navigate to="/home" replace />;
   }
 
   return <>{children}</>;
+}
+
+/**
+ * If Supabase OAuth lands on the site root (or another guest page) instead of the
+ * intended callback route, forward the user — preserving PKCE query params — before
+ * the session exchange completes and the URL is cleaned up.
+ */
+function OAuthCallbackRouter() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!hasOAuthCallbackParams()) return;
+    if (OAUTH_CALLBACK_DESTINATIONS.has(location.pathname)) return;
+
+    markAuthCallbackPending();
+
+    const intent = consumeOAuthIntent();
+    const target = resolveOAuthCallbackTarget(intent);
+    const hashSuffix =
+      window.location.hash.includes('access_token=') ||
+      window.location.hash.includes('type=recovery')
+        ? window.location.hash
+        : '';
+
+    navigate(`${target}${location.search}${hashSuffix}`, { replace: true });
+  }, [location.pathname, location.search, navigate]);
+
+  return null;
 }
 
 
@@ -186,9 +272,13 @@ function App() {
     return cached === 'true';
   });
 
+  const [maintenanceSchedule, setMaintenanceSchedule] = useState<{active: boolean; start_at: string; message?: string} | null>(null);
+
   useEffect(() => {
     if (profile) {
       syncEngine.initialize();
+    } else {
+      syncEngine.shutdown();
     }
   }, [profile]);
 
@@ -290,50 +380,56 @@ function App() {
 
   useEffect(() => {
     const checkMaintenance = async () => {
-      const { data } = await supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle();
-      if (data) {
-        const val = data.value as unknown;
-        if (typeof val === 'object' && val !== null) {
-          const config = val as Record<string, unknown>;
-          if (config.enabled === true) {
-            setIsMaintenance(true);
-            localStorage.setItem('nemesis_maintenance_cached', 'true');
-            // Handle expires_at safely
-            if (config.expires_at && typeof config.expires_at === 'string') {
-              const expiry = new Date(config.expires_at);
-              if (expiry < new Date()) {
+      try {
+        const [modeRes, schedRes] = await Promise.all([
+          supabase.from('system_settings').select('value').eq('key', 'maintenance_mode').maybeSingle(),
+          supabase.from('system_settings').select('value').eq('key', 'maintenance_schedule').maybeSingle(),
+        ]);
+
+        if (modeRes.data) {
+          const val = modeRes.data.value as unknown;
+          if (typeof val === 'object' && val !== null) {
+            const config = val as Record<string, unknown>;
+            if (config.enabled === true) {
+              if (config.expires_at && typeof config.expires_at === 'string' && new Date(config.expires_at) < new Date()) {
                 setIsMaintenance(false);
-                return;
+                localStorage.setItem('nemesis_maintenance_cached', 'false');
+              } else {
+                setIsMaintenance(true);
+                localStorage.setItem('nemesis_maintenance_cached', 'true');
               }
+            } else {
+              setIsMaintenance(false);
+              localStorage.setItem('nemesis_maintenance_cached', 'false');
             }
           } else {
-            setIsMaintenance(false);
+            setIsMaintenance(val === true);
+            localStorage.setItem('nemesis_maintenance_cached', String(val === true));
           }
         } else {
-          setIsMaintenance(val === true);
-          localStorage.setItem('nemesis_maintenance_cached', String(val === true));
+          setIsMaintenance(false);
+          localStorage.setItem('nemesis_maintenance_cached', 'false');
         }
-      } else {
-        // If no data/key found, default to false and clear cache
-        setIsMaintenance(false);
-        localStorage.setItem('nemesis_maintenance_cached', 'false');
+
+        if (schedRes.data) {
+          setMaintenanceSchedule(schedRes.data.value as any);
+        }
+      } catch {
+        // non-critical — ignore
       }
     };
     
-    // Execute maintenance check immediately to prevent route-flicker
-    checkMaintenance();
+    // ⚡ DEFER: Run after first paint so it doesn't block the critical render path
+    const t = setTimeout(checkMaintenance, 0);
     
-    // Use a unique channel name to avoid conflicts with Maintenance.tsx's own channel
     const channel = supabase
       .channel('app-maintenance-watcher')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_settings', filter: 'key=eq.maintenance_mode' }, () => {
-        // With REPLICA IDENTITY FULL, payload.new contains the full updated row.
-        // Always re-fetch on any change to guarantee correctness.
-        checkMaintenance();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_settings', filter: 'key=eq.maintenance_mode' }, () => checkMaintenance())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_settings', filter: 'key=eq.maintenance_schedule' }, () => checkMaintenance())
       .subscribe();
       
     return () => { 
+      clearTimeout(t);
       supabase.removeChannel(channel); 
     };
   }, []);
@@ -346,7 +442,8 @@ function App() {
   return (
     <Router>
       <AppRoutes 
-        isMaintenance={isMaintenance} 
+        isMaintenance={isMaintenance}
+        maintenanceSchedule={maintenanceSchedule}
         isLowPerf={isLowPerf} 
         isVisible={isVisible} 
       />
@@ -355,8 +452,9 @@ function App() {
 }
 
 // Inner component — has access to useLocation() inside <BrowserRouter>
-function AppRoutes({ isMaintenance, isLowPerf, isVisible }: {
+function AppRoutes({ isMaintenance, maintenanceSchedule, isLowPerf, isVisible }: {
   isMaintenance: boolean;
+  maintenanceSchedule: {active: boolean; start_at: string; message?: string} | null;
   isLowPerf: boolean;
   isVisible: boolean;
 }) {
@@ -417,13 +515,12 @@ function AppRoutes({ isMaintenance, isLowPerf, isVisible }: {
 
   return (
     <GlobalErrorBoundary>
-      <Suspense fallback={null}>
-        <PremiumSplashScreen isVisible={showSplash} onFinish={() => setShowSplash(false)} />
-      </Suspense>
+      <PremiumSplashScreen isVisible={showSplash} onFinish={() => setShowSplash(false)} />
 
       <TopProgressBar />
       <SEO />
-      <MaintenanceBanner />
+      <MaintenanceBanner schedule={maintenanceSchedule} />
+      <OAuthCallbackRouter />
     <div className="app-wrapper min-h-screen min-h-[100dvh] flex flex-col items-stretch justify-start transition-colors duration-300 relative overflow-x-hidden min-w-0">
       {(!profile?.theme_preference || profile.theme_preference === 'glassmorphism') && !isLowPerf && (
         <Suspense fallback={null}>
@@ -445,7 +542,7 @@ function AppRoutes({ isMaintenance, isLowPerf, isVisible }: {
             />
             <Route path="/welcome" element={<GuestRoute><PageTransition><Welcome /></PageTransition></GuestRoute>} />
             <Route path="/forgot-password" element={<GuestRoute><PageTransition><ForgotPassword /></PageTransition></GuestRoute>} />
-            <Route path="/reset-password" element={<GuestRoute><PageTransition><ResetPassword /></PageTransition></GuestRoute>} />
+            <Route path="/reset-password" element={<GuestRoute allowWithSession><PageTransition><ResetPassword /></PageTransition></GuestRoute>} />
             <Route path="/login" element={<GuestRoute><PageTransition><Login /></PageTransition></GuestRoute>} />
             <Route path="/signup" element={<GuestRoute><PageTransition><SignupStep1 /></PageTransition></GuestRoute>} />
             
@@ -542,4 +639,3 @@ function AppRoutes({ isMaintenance, isLowPerf, isVisible }: {
 }
 
 export default App;
-

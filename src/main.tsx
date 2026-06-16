@@ -124,8 +124,13 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <SWRConfig value={swrConfig}>
         <Suspense fallback={
-          <div className="h-screen w-screen bg-[#030712] flex items-center justify-center">
-            <div className="animate-pulse text-slate-500 font-medium tracking-tight">Initializing...</div>
+          <div className="h-screen w-screen bg-[#030712] flex flex-col items-center justify-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/30">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </div>
+            <div className="w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
           </div>
         }>
           <App />

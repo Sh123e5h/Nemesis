@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
 import { AlertCircle, Clock, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,55 +8,34 @@ interface MaintenanceSchedule {
   message?: string;
 }
 
-export default function MaintenanceBanner() {
-  const [schedule, setSchedule] = useState<MaintenanceSchedule | null>(null);
+interface Props {
+  schedule?: MaintenanceSchedule | null;
+}
+
+export default function MaintenanceBanner({ schedule }: Props) {
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(true);
 
-  const fetchSchedule = useCallback(async () => {
-    const { data } = await supabase.from('system_settings').select('value').eq('key', 'maintenance_schedule').maybeSingle();
-    if (data) setSchedule(data.value as MaintenanceSchedule);
-  }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => fetchSchedule(), 0);
-    const channel = supabase
-      .channel('system_settings_changes')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_settings' }, (payload) => {
-        if (payload.new.key === 'maintenance_mode') {
-          fetchSchedule();
-        }
-      })
-      .subscribe();
-
-    return () => {
-      clearTimeout(t);
-      supabase.removeChannel(channel);
-    };
-  }, [fetchSchedule]);
-
   useEffect(() => {
     if (!schedule || !schedule.active || !schedule.start_at) {
-      const t = setTimeout(() => setTimeLeft(null), 0);
-      return () => clearTimeout(t);
+      setTimeLeft(null);
+      return;
     }
 
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const start = new Date(schedule.start_at).getTime();
-      const diff = start - now;
-
+    const update = () => {
+      const diff = new Date(schedule.start_at).getTime() - Date.now();
       if (diff <= 0) {
         setTimeLeft('Starting Now');
-        clearInterval(timer);
       } else {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${hours}h ${mins}m ${secs}s`);
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${h}h ${m}m ${s}s`);
       }
-    }, 1000);
+    };
 
+    update();
+    const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, [schedule]);
 
@@ -86,3 +64,4 @@ export default function MaintenanceBanner() {
     </AnimatePresence>
   );
 }
+

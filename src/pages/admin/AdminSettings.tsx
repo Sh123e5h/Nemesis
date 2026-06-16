@@ -118,6 +118,10 @@ export default function AdminSettings() {
   }, []);
 
   const updateMaintenanceSchedule = useCallback(async () => {
+    if (maintenanceSchedule.active && maintenanceSchedule.start_at && new Date(maintenanceSchedule.start_at) < new Date()) {
+      alert('Error: Launch Epoch must be in the future to enable countdown.');
+      return;
+    }
     setMsLoading(true);
     try {
       const adminId = sessionStorage.getItem('adminId');
@@ -461,6 +465,7 @@ export default function AdminSettings() {
                       <p className="text-[10px] text-slate-500">Show notification banner to users.</p>
                    </div>
                    <button 
+                     type="button"
                      onClick={() => setMaintenanceSchedule({ ...maintenanceSchedule, active: !maintenanceSchedule.active })}
                      className={`w-12 h-6 rounded-full transition-colors relative ${maintenanceSchedule.active ? 'bg-sky-500' : 'bg-slate-300'}`}
                    >

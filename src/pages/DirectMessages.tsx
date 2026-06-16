@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
 import UserAvatar from '../components/UserAvatar';
-import { Send, MessageCircle, Paperclip, FileText, Trash2, Search, Plus, X, UserPlus } from 'lucide-react';
-import { uploadSmart, getOptimizedUrl } from '../lib/storage';
+import { Send, MessageCircle, Paperclip, Trash2, Search, Plus, X, UserPlus } from 'lucide-react';
+import { uploadSmart } from '../lib/storage';
 import { Skeleton, SkeletonCircle, SkeletonLine } from '../components/Skeleton';
+import FilePreview from '../components/FilePreview';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -59,27 +60,13 @@ const MessageItem = React.memo(({
       )}
       
       {msg.attachment_url && (
-        <div className={clsx("mb-1 rounded-xl overflow-hidden border border-slate-200 shadow-sm max-w-xs sm:max-w-sm", isMe ? "bg-sky-50" : "bg-white")}>
-          {msg.attachment_type === 'image' ? (
-            <a href={msg.attachment_url} target="_blank" rel="noreferrer">
-              <img 
-                src={getOptimizedUrl(msg.attachment_url, 400)} 
-                alt={msg.attachment_name} 
-                loading="lazy"
-                className="w-full h-auto max-h-64 object-cover hover:opacity-90 transition" 
-              />
-            </a>
-          ) : (
-            <a href={msg.attachment_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 hover:bg-slate-50 transition">
-              <div className="w-10 h-10 rounded bg-sky-100 text-sky-500 flex items-center justify-center shrink-0">
-                <FileText size={20} />
-              </div>
-              <div className="min-w-0 pr-4">
-                <div className="font-semibold text-sm text-slate-700 truncate">{msg.attachment_name}</div>
-                <div className="text-xs text-slate-500 uppercase">{msg.attachment_type}</div>
-              </div>
-            </a>
-          )}
+        <div className="mb-1">
+          <FilePreview 
+            url={msg.attachment_url}
+            name={msg.attachment_name || 'File'}
+            type={msg.attachment_type || 'document'}
+            isMe={isMe}
+          />
         </div>
       )}
 
@@ -107,16 +94,16 @@ const MessageItem = React.memo(({
               ></iframe>
             </div>
           )}
-
-          <div className={clsx(
-            "absolute top-full mt-1 text-[9px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap",
-            isMe ? "right-1" : "left-1"
-          )}>
-            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            {isMe && <span className="ml-1 text-sky-500">• {msg.is_read ? 'Read' : 'Delivered'}</span>}
-          </div>
         </div>
       )}
+
+      <div className={clsx(
+        "text-[9px] text-slate-400 mt-0.5",
+        isMe ? "text-right" : "text-left"
+      )}>
+        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        {isMe && <span className="ml-1 text-sky-500 font-medium">• {msg.is_read ? 'Read' : 'Delivered'}</span>}
+      </div>
     </div>
   );
 }, (prev, next) => {
@@ -462,52 +449,62 @@ export default function DirectMessages() {
     }
 
     setUploading(true);
-    const { url: publicUrl, hash } = await uploadSmart(file, 'chat_attachments');
+    let tempId: string | null = null;
 
-    const fileExt = file.name.split('.').pop() || '';
-    let simplifiedType = file.type || fileExt;
-    if (file.type.startsWith('image/')) simplifiedType = 'image';
-    else if (file.type.startsWith('video/')) simplifiedType = 'video';
-    else if (file.type.startsWith('audio/')) simplifiedType = 'audio';
-    else if (file.type === 'application/pdf') simplifiedType = 'pdf';
-    else simplifiedType = 'document';
+    try {
+      const { url: publicUrl, hash } = await uploadSmart(file, 'chat_attachments');
 
-    // Optimistic UI Append for file
-    const tempId = 'temp-' + Date.now();
-    const optimisticMessage: DirectMessage = {
-      id: tempId,
-      sender_id: profile.id,
-      receiver_id: activeUser.id,
-      content: '', 
-      attachment_url: publicUrl,
-      attachment_name: file.name,
-      attachment_type: simplifiedType,
-      created_at: new Date().toISOString(),
-      is_read: false
-    };
-    
-    setMessages(prev => [...prev, optimisticMessage]);
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+      const mimeType = file.type || '';
+      let simplifiedType = 'document';
+      
+      if (mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'].includes(fileExt)) {
+        simplifiedType = 'image';
+      } else if (mimeType.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(fileExt)) {
+        simplifiedType = 'video';
+      } else if (mimeType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a'].includes(fileExt)) {
+        simplifiedType = 'audio';
+      } else if (mimeType === 'application/pdf' || fileExt === 'pdf') {
+        simplifiedType = 'pdf';
+      }
 
-    // Send the message with attachment
-    const { data: insertedMsg, error: dbError } = await supabase.from('direct_messages').insert([{
-      sender_id: profile.id,
-      receiver_id: activeUser.id,
-      content: '', 
-      attachment_url: publicUrl,
-      attachment_name: file.name,
-      attachment_type: simplifiedType,
-      storage_hash: hash
-    }]).select().single();
+      tempId = 'temp-' + Date.now();
+      const optimisticMessage: DirectMessage = {
+        id: tempId,
+        sender_id: profile.id,
+        receiver_id: activeUser.id,
+        content: '', 
+        attachment_url: publicUrl,
+        attachment_name: file.name,
+        attachment_type: simplifiedType,
+        created_at: new Date().toISOString(),
+        is_read: false
+      };
+      
+      setMessages(prev => [...prev, optimisticMessage]);
 
-    if (dbError) {
-      console.error("Error inserting file msg", dbError);
-      setMessages(prev => prev.filter(m => m.id !== tempId));
-    } else if (insertedMsg) {
-      setMessages(prev => prev.map(m => m.id === tempId ? insertedMsg as DirectMessage : m));
+      const { data: insertedMsg, error: dbError } = await supabase.from('direct_messages').insert([{
+        sender_id: profile.id,
+        receiver_id: activeUser.id,
+        content: '', 
+        attachment_url: publicUrl,
+        attachment_name: file.name,
+        attachment_type: simplifiedType,
+        storage_hash: hash
+      }]).select().single();
+
+      if (dbError) throw dbError;
+      if (insertedMsg) {
+        setMessages(prev => prev.map(m => m.id === tempId ? insertedMsg as DirectMessage : m));
+      }
+    } catch (err) {
+      console.error("Error uploading direct message attachment", err);
+      if (tempId) setMessages(prev => prev.filter(m => m.id !== tempId));
+      alert("Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-
-    setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDeleteChat = async () => {

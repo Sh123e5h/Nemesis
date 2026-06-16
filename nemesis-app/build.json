@@ -1,0 +1,11 @@
+{
+    "android": {
+        "release": {
+            "keystore": "release.keystore",
+            "storePassword": "nemesis2026",
+            "alias": "nemesis_alias",
+            "password" : "nemesis2026",
+            "keystoreType": "jks"
+        }
+    }
+}

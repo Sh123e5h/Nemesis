@@ -76,15 +76,17 @@ export default function AdminNotifications() {
       // 2. Send Emails if enabled
       if (sendEmail && userEmails.length > 0) {
         console.log(`[Admin] Triggering email dispatch for ${userEmails.length} users...`);
-        const { error: mailError } = await supabase.functions.invoke('moderation-mailer-v2', {
-          body: {
-            emails: userEmails,
-            type: 'admin_notification',
-            title: sendForm.title,
-            content: sendForm.content
-          }
-        });
-        if (mailError) console.warn('[Admin] Mail dispatch warning:', mailError);
+        for (const userEmail of userEmails) {
+          const { error: mailError } = await supabase.functions.invoke('moderation-mailer-v2', {
+            body: {
+              email: userEmail,
+              type: 'admin_notification',
+              title: sendForm.title,
+              content: sendForm.content
+            }
+          });
+          if (mailError) console.warn(`[Admin] Mail dispatch warning for ${userEmail}:`, mailError);
+        }
       }
       
       alert(`📨 Notification sent to ${targetUsers.length} users${sendEmail ? ' (including Email)' : ''}!`);

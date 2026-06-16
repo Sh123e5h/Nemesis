@@ -20,9 +20,9 @@ const config: CapacitorConfig = {
       backgroundColor: '#00000000'
     },
     Keyboard: {
-      resize: 'body',
+      resize: 'none',
       style: 'DARK',
-      resizeOnFullScreen: true
+      resizeOnFullScreen: false
     },
     CapacitorHttp: {
       enabled: true

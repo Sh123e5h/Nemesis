@@ -20,8 +20,12 @@ export const SectionFallback = () => {
   const isAuthPath = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(pathname) || pathname.startsWith('/signup/');
   
   const renderContent = () => {
-    // 1. SAFETY GATE: Root Landing Page
-    if (pathname === '/') return <div className="min-h-screen bg-slate-50 dark:bg-slate-950" />;
+    // 1. SAFETY GATE: Root Landing Page — show an instant white shell while landing page loads
+    if (pathname === '/') return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
     
     // 2. Onboarding Flow (/onboarding or /welcome)
     if (pathname === '/onboarding' || pathname === '/welcome') return <WelcomeSkeleton />;

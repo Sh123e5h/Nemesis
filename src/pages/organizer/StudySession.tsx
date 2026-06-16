@@ -123,7 +123,9 @@ export default function StudySession() {
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-950 cyberpunk:bg-black text-slate-950 dark:text-white overflow-hidden transition-colors mobile-hardened">
       {/* Header */}
-      <div className="p-4 glass-premium dark:bg-slate-900/40 cyberpunk:bg-black/60 border-b border-slate-200/50 dark:border-slate-800 cyberpunk:border-emerald-500/30 flex items-center justify-between z-20">
+      <div
+        className="p-4 glass-premium dark:bg-slate-900/40 cyberpunk:bg-black/60 border-b border-slate-200/50 dark:border-slate-800 cyberpunk:border-emerald-500/30 flex items-center justify-between z-20"
+      >
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center glass-premium border border-slate-200/50 dark:border-slate-800 rounded-xl text-slate-500 hover:text-sky-500 transition group">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>

@@ -2,6 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import {
+  clearAuthCallbackPending,
+  hasOAuthCallbackParams,
+  isAuthCallbackPending,
+  markAuthCallbackPending,
+} from '../../lib/authRedirect';
 import { useAuthStore } from '../../store/useAuthStore';
 import { tokenManager } from '../../lib/tokenManager';
 import { awardPoints } from '../../lib/gamification';
@@ -25,12 +31,12 @@ export default function SignupStep2() {
     processStarted.current = true;
 
     // PKCE flow uses ?code= query param; implicit flow uses #access_token= hash.
-    const hash = window.location.hash;
-    const search = window.location.search;
     const isCallback =
-      hash.includes('access_token=') ||
-      hash.includes('refresh_token=') ||
-      search.includes('code=');
+      hasOAuthCallbackParams() || isAuthCallbackPending();
+
+    if (hasOAuthCallbackParams()) {
+      markAuthCallbackPending();
+    }
 
     const longTimeHandle = setTimeout(() => {
       setTakingLongTime(true);
@@ -40,12 +46,15 @@ export default function SignupStep2() {
       setError('');
 
       // 1. Wait for session hydration
-      let currentSession = session;
-      if (!currentSession && isCallback) {
-        for (let i = 0; i < 15; i++) {
+      let currentSession = session ?? (await supabase.auth.getSession()).data.session;
+      if (!currentSession?.user && isCallback) {
+        for (let i = 0; i < 20; i++) {
           const { data } = await supabase.auth.getSession();
           if (data.session) {
             currentSession = data.session;
+            if (!session) {
+              await useAuthStore.getState().setSession(data.session);
+            }
             break;
           }
           await new Promise(r => setTimeout(r, 500));
@@ -57,6 +66,8 @@ export default function SignupStep2() {
         else setError('Authentication timed out. Please try signing up again.');
         return;
       }
+
+      clearAuthCallbackPending();
 
       // ─── NEW: SCOPE ENFORCEMENT ──────────────────────────────────────────────
       // Verify that the user checked the Drive checkboxes in the Google Consent screen.
@@ -70,8 +81,8 @@ export default function SignupStep2() {
           navigate('/signup?error=missing_permissions', { replace: true });
           return;
         }
-      } else if (currentSession.user.app_metadata.provider === 'google') {
-          // If it's a Google user but we reached this point with NO token, it's a critical state error
+      } else if (currentSession.user.app_metadata.provider === 'google' && isCallback) {
+          // If it's a Google user in an OAuth callback but we reached this point with NO token, it's a critical state error
           await supabase.auth.signOut();
           navigate('/signup?error=auth_failed', { replace: true });
           return;

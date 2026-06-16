@@ -76,14 +76,19 @@ Deno.serve(async (req: Request) => {
 
     if (!html) html = `<h1>NEMESIS Intelligence Notification</h1><p>Protocol update for node ${email}.</p>`;
 
-    // 2. Recovery Link Logic
+    // 3. Recovery Link Logic (password_reset) — FIXED: null safety
     if (type === "password_reset") {
-      const { data: linkData } = await supabase.auth.admin.generateLink({
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
         type: "recovery",
         email,
-        options: { redirectTo: redirect_url ?? "https://nemesis-xi.vercel.app/reset-password" }
+        options: { redirectTo: redirect_url ?? "https://nemesiss.in/reset-password" }
       });
-      if (linkData) data.reset_link = linkData.properties.action_link;
+      if (linkError) throw linkError;
+      if (linkData?.properties?.action_link) {
+        data.reset_link = linkData.properties.action_link;
+      } else {
+        throw new Error("Failed to generate recovery link");
+      }
     }
 
     // 3. Variable Replacement

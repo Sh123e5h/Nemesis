@@ -11,7 +11,8 @@ import {
   FileText,
   Zap,
   ExternalLink,
-  Search
+  Search,
+  ExternalLink as OpenIcon
 } from 'lucide-react';
 import { lazyWithRetry as lazy } from '../../lib/lazyWithRetry';
 const QuizGenerator = lazy(() => import('../../components/QuizGenerator'), 'QuizGenerator');
@@ -21,6 +22,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { fetchDriveFileBlob, fetchDriveFileViaEdge } from '../../lib/gdrive';
+import { isNativeApp, openInSystemBrowser } from '../../lib/nativeUtils';
+import NativePDFViewer from '../../components/NativePDFViewer';
 
 /**
  * Robust helper to extract Google Drive file ID from any URL format.
@@ -338,7 +341,9 @@ export default function PdfPreview() {
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-slate-950 cyberpunk:bg-black text-slate-900 dark:text-white transition-colors duration-500 overflow-hidden">
       {/* Premium Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 glass-premium bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-white/5 relative z-50">
+      <div
+        className="flex items-center justify-between p-2 md:p-3 glass-premium bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-white/5 relative z-50"
+      >
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition text-slate-500 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 group">
           <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
           <span className="hidden sm:inline font-black text-[10px] uppercase tracking-[0.2em]">Exit Terminal</span>
@@ -500,19 +505,49 @@ export default function PdfPreview() {
                 </div>
               )
             ) : material.file_type === 'pdf' ? (
-              <iframe 
-                src={blobUrl || (gDriveId ? `https://drive.google.com/file/d/${gDriveId}/preview` : material.file_url)} 
-                className="w-full h-full border-none bg-white dark:bg-slate-950 transition-colors duration-500"
-                title={material.title}
-                key={blobUrl ? "blob" : "preview"}
-              />
+              // ── PDF rendering ──────────────────────────────────────────────────────
+              // Native WebView (Cordova Android) cannot render PDFs inside <iframe>.
+              // Use the canvas-based NativePDFViewer in native mode.
+              isNativeApp() ? (
+                <NativePDFViewer blobUrl={blobUrl} isLoading={isBlobLoading} />
+              ) : (
+                <iframe 
+                  src={blobUrl || (gDriveId ? `https://drive.google.com/file/d/${gDriveId}/preview` : material.file_url)} 
+                  className="w-full h-full border-none bg-white dark:bg-slate-950 transition-colors duration-500"
+                  title={material.title}
+                  key={blobUrl ? "blob" : "preview"}
+                />
+              )
             ) : material.file_type === 'video' ? (
               <div className="flex items-center justify-center h-full w-full bg-black">
                 <video src={blobUrl || material.file_url} controls className="max-w-5xl w-full max-h-[90%] rounded-3xl shadow-2xl border border-white/10" />
               </div>
             ) : material.file_type === 'image' ? (
+              // ── Image rendering ────────────────────────────────────────────────────
+              // In native mode, if no blob URL or load error, open in system browser.
+              // Google Drive preview iframes are blocked in Android WebView.
               ((gDriveId && !blobUrl) || imgLoadError) ? (
-                <iframe src={`https://drive.google.com/file/d/${gDriveId}/preview`} className="w-full h-full border-none bg-white dark:bg-slate-950" title={material.title} />
+                isNativeApp() ? (
+                  <div className="flex flex-col items-center justify-center h-full w-full bg-slate-100 dark:bg-slate-900 p-8 gap-6">
+                    <div className="glass-premium bg-white/80 dark:bg-slate-800/80 px-10 py-10 rounded-[2.5rem] border border-slate-200 dark:border-white/10 max-w-sm shadow-xl text-center">
+                      <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <span className="text-3xl">🖼️</span>
+                      </div>
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-3">Open Image</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
+                        Tap below to open this image in your device browser.
+                      </p>
+                      <button
+                        onClick={() => openInSystemBrowser(gDriveId ? `https://drive.google.com/file/d/${gDriveId}/view` : material.file_url)}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <OpenIcon size={16} /> Open in Browser
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <iframe src={`https://drive.google.com/file/d/${gDriveId}/preview`} className="w-full h-full border-none bg-white dark:bg-slate-950" title={material.title} />
+                )
               ) : (
                 <div className="flex items-center justify-center h-full w-full bg-slate-100 dark:bg-slate-950 p-8 transition-colors duration-500">
                   <img 
@@ -547,9 +582,12 @@ export default function PdfPreview() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-10">
                     The requested resource resides outside the local intelligence grid. Syncing requires direct uplink.
                   </p>
-                  <a href={material.file_url} target="_blank" rel="noreferrer" className="block w-full bg-sky-500 hover:bg-sky-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95">
+                  <button
+                    onClick={() => openInSystemBrowser(material.file_url)}
+                    className="block w-full bg-sky-500 hover:bg-sky-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95"
+                  >
                     Establish Uplink
-                  </a>
+                  </button>
                 </div>
               </div>
             ) : material.title?.match(/\.txt$/i) && extractedText ? (
@@ -559,11 +597,73 @@ export default function PdfPreview() {
                  </div>
               </div>
             ) : (gDriveId) ? (
-              <iframe src={`https://drive.google.com/file/d/${gDriveId}/preview`} className="w-full h-full border-none bg-white dark:bg-slate-950 font-sans" title="Drive Secure Preview" />
+              // ── Generic Drive file ─────────────────────────────────────────────────
+              // In native mode, Google Drive preview iframes are blocked. Open externally.
+              isNativeApp() ? (
+                <div className="flex flex-col items-center justify-center h-full w-full bg-slate-100 dark:bg-slate-900 p-8">
+                  <div className="glass-premium bg-white/80 dark:bg-slate-800/80 px-10 py-12 rounded-[2.5rem] border border-slate-200 dark:border-white/10 max-w-sm shadow-xl text-center">
+                    <div className="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <FileText size={32} className="text-sky-500" />
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-3">{material.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
+                      This file type opens best in your device browser.
+                    </p>
+                    <button
+                      onClick={() => openInSystemBrowser(`https://drive.google.com/file/d/${gDriveId}/view`)}
+                      className="w-full bg-sky-500 hover:bg-sky-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-sky-500/20 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <OpenIcon size={16} /> Open in Browser
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <iframe src={`https://drive.google.com/file/d/${gDriveId}/preview`} className="w-full h-full border-none bg-white dark:bg-slate-950 font-sans" title="Drive Secure Preview" />
+              )
             ) : material.title?.match(/\.(doc|docx|xls|xlsx|ppt|pptx|rtf)$/i) ? (
-              <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(material.file_url)}`} className="w-full h-full border-none bg-white dark:bg-slate-950" title="Doc Preview" />
+              isNativeApp() ? (
+                <div className="flex flex-col items-center justify-center h-full w-full bg-slate-100 dark:bg-slate-900 p-8">
+                  <div className="glass-premium bg-white/80 dark:bg-slate-800/80 px-10 py-12 rounded-[2.5rem] border border-slate-200 dark:border-white/10 max-w-sm shadow-xl text-center">
+                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <FileText size={32} className="text-blue-500" />
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-3">{material.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
+                      Open this document in your browser to view it.
+                    </p>
+                    <button
+                      onClick={() => openInSystemBrowser(`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(material.file_url)}`)}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <OpenIcon size={16} /> Open Document
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(material.file_url)}`} className="w-full h-full border-none bg-white dark:bg-slate-950" title="Doc Preview" />
+              )
             ) : (
-              <iframe src={material.file_url} className="w-full h-full border-none bg-white dark:bg-slate-950 font-sans" title="Fallback Preview" />
+              isNativeApp() ? (
+                <div className="flex flex-col items-center justify-center h-full w-full bg-slate-100 dark:bg-slate-900 p-8">
+                  <div className="glass-premium bg-white/80 dark:bg-slate-800/80 px-10 py-12 rounded-[2.5rem] border border-slate-200 dark:border-white/10 max-w-sm shadow-xl text-center">
+                    <div className="w-16 h-16 bg-slate-500/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <FileText size={32} className="text-slate-500" />
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-3">{material.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-6">
+                      Tap below to open or download this file.
+                    </p>
+                    <button
+                      onClick={() => openInSystemBrowser(material.file_url)}
+                      className="w-full bg-slate-700 hover:bg-slate-800 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <OpenIcon size={16} /> Open File
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <iframe src={material.file_url} className="w-full h-full border-none bg-white dark:bg-slate-950 font-sans" title="Fallback Preview" />
+              )
             )}
           </div>
         </div>
